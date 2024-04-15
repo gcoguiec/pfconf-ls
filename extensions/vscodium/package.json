@@ -1,9 +1,20 @@
 {
   "name": "pfconf-ls-vscodium",
   "version": "1.0.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gcoguiec/pfconf-ls.git",
+    "directory": "extensions/vscodium"
+  },
+  "publisher": "gcoguiec",
+  "displayName": "pfconf-ls",
   "private": true,
-  "description": "Packet Filter configuration language support for VSCodium",
-  "author": "Guillaume 'Yugo' Coguiec <mail@gcoguiec.com> (https://github.com/gcoguiec/)",
+  "description": "pfconf-ls support for VSCodium",
+  "author": {
+    "name": "Guillaume 'Yugo' Coguiec",
+    "email": "mail@gcoguiec.com",
+    "url": "https://github.com/gcoguiec/"
+  },
   "license": "BSD-2-Clause",
   "keywords": [
     "Packet Filter",
@@ -20,19 +31,82 @@
       "supported": false
     }
   },
+  "contributes": {
+    "languages": [
+      {
+        "id": "pfconf-ls",
+        "filenamePatterns": [
+          "**/pf.conf"
+        ],
+        "aliases": [
+          "Packet Filter",
+          "pf.conf"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "pfconf-ls.action.restartServer",
+        "title": "Restart server",
+        "category": "pfconf-ls"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "pfconf-ls",
+      "properties": {
+        "pfconf-ls.trace.extension": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Enable debugging logs for extension itself."
+        },
+        "pfconf-ls.trace.server": {
+          "type": "string",
+          "scope": "window",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "enumDescriptions": [
+            "No tracing",
+            "Informations, warnings and errors only",
+            "Full tracing"
+          ],
+          "default": "off",
+          "markdownDescription": "Trace requests to the pfconf language server (for debugging purposes)."
+        },
+        "pfconf-ls.server.path": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "scope": "machine-overridable",
+          "default": null,
+          "markdownDescription": "Path to pfconf-ls executable (points to bundled binary by default)."
+        }
+      }
+    }
+  },
   "activationEvents": [
     "workspaceContains:pf.conf",
     "workspaceContains:*/pf.conf"
   ],
+  "vsce": {
+    "yarn": false,
+    "dependencies": false
+  },
   "main": "./client.js",
   "scripts": {
-    "build": "tsc -b",
+    "build": "tsc -b && node scripts/build.mjs",
     "fmt": "prettier --write '**/*.{js,cjs,mjs,ts,cts,mts,json,md}'",
     "fmt:check": "prettier --check '**/*.{js,cjs,mjs,ts,cts,mts,json,md}'",
     "spellcheck": "cspell --config=.cspell.json '**/*.{md,js,cjs,mjs,ts,cts,mts}'",
     "lint": "DEBUG=eslint:cli-engine pnpm eslint . --ext .js,.cjs,.mjs,.ts,.cts,.mts --ignore-path .gitignore",
     "lint:fix": "pnpm lint --fix",
     "lint:conflicts": "npx eslint-config-prettier .eslintrc.cjs",
+    "package": "vsce package --out dist/pfconfls.vsix",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -44,7 +118,10 @@
     "@typescript-eslint/eslint-plugin": "^7.7.0",
     "@typescript-eslint/parser": "^7.7.0",
     "@vscode/test-electron": "^2.3.9",
+    "@vscode/vsce": "^2.25.0",
     "cspell": "^8.7.0",
+    "esbuild": "^0.20.2",
+    "esbuild-visualizer": "^0.6.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-perfectionist": "^2.9.0",
@@ -53,7 +130,7 @@
     "typescript": "^5.4.5"
   },
   "engines": {
-    "vscodium": "^1.88.1"
+    "vscode": "^1.88.1"
   },
   "devEngines": {
     "node": ">=18"

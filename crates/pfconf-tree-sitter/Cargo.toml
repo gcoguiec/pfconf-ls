@@ -1,0 +1,27 @@
+cargo-features = ["edition2024"]
+
+[package]
+name = "pfconf-tree-sitter"
+description = "FreeBSD's Packet Filter grammar for the tree-sitter parsing library"
+version = "0.0.1"
+keywords = ["incremental", "parsing", "pf"]
+categories = ["parsing", "text-editors"]
+repository = "https://github.com/gcoguiec/pfconf-ls"
+edition = "2024"
+license = "BSD-2-Clause"
+
+include = [
+    "../../grammar/grammar.js",
+    "../../grammar/queries/*",
+    "../../grammar/src/*"
+]
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+tree-sitter = "~0.20.10"
+tree-sitter-highlight = "0.22.5"
+
+[build-dependencies]
+cc = "1.0"

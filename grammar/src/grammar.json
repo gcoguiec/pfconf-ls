@@ -1,0 +1,1641 @@
+{
+  "name": "pfconf",
+  "word": "identifier",
+  "rules": {
+    "lines": {
+      "type": "REPEAT",
+      "content": {
+        "type": "SYMBOL",
+        "name": "line"
+      }
+    },
+    "line": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "option"
+        }
+      ]
+    },
+    "comment": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "#"
+        },
+        {
+          "type": "PATTERN",
+          "value": ".*"
+        }
+      ]
+    },
+    "option": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "set_keyword"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "_reassemble_option"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_optimization_option"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_ruleset_optimization_option"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_timeout_option"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_limit_option"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_loginterface_option"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_hostid_option"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_block_policy_option"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_fail_policy_option"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_require_order_option"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_fingerprints_option"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_state_policy_option"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_debug_option"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_skip_option"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_state_defaults_option"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_keep_counters_option"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_syncookies_option"
+            }
+          ]
+        }
+      ]
+    },
+    "_reassemble_option": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "reassemble_keyword"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "yes_keyword"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "no_keyword"
+            }
+          ]
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "no_df_keyword"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        }
+      ]
+    },
+    "_optimization_option": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "optimization_keyword"
+        },
+        {
+          "type": "FIELD",
+          "name": "hint",
+          "content": {
+            "type": "SYMBOL",
+            "name": "optimization_hint"
+          }
+        }
+      ]
+    },
+    "_ruleset_optimization_option": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "ruleset_optimization_keyword"
+        },
+        {
+          "type": "FIELD",
+          "name": "optimizer",
+          "content": {
+            "type": "SYMBOL",
+            "name": "ruleset_optimizer"
+          }
+        }
+      ]
+    },
+    "_timeout_option": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "timeout_keyword"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "timeout_spec"
+            },
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "STRING",
+                  "value": "{"
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "timeout_list"
+                },
+                {
+                  "type": "STRING",
+                  "value": "}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "_limit_option": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "limit_keyword"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "limit_spec"
+            },
+            {
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "STRING",
+                  "value": "{"
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "limit_list"
+                },
+                {
+                  "type": "STRING",
+                  "value": "}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "_loginterface_option": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "loginterface_keyword"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "FIELD",
+              "name": "interface",
+              "content": {
+                "type": "SYMBOL",
+                "name": "identifier"
+              }
+            },
+            {
+              "type": "STRING",
+              "value": "none"
+            }
+          ]
+        }
+      ]
+    },
+    "_hostid_option": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "hostid_keyword"
+        },
+        {
+          "type": "FIELD",
+          "name": "number",
+          "content": {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "number"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "hex_number"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "_block_policy_option": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "block_policy_keyword"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "drop_keyword"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "return_keyword"
+            }
+          ]
+        }
+      ]
+    },
+    "_fail_policy_option": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "fail_policy_keyword"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "drop_keyword"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "return_keyword"
+            }
+          ]
+        }
+      ]
+    },
+    "_require_order_option": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "require_order_keyword"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "yes"
+            },
+            {
+              "type": "STRING",
+              "value": "no"
+            }
+          ]
+        }
+      ]
+    },
+    "_fingerprints_option": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "fingerprints_keyword"
+        },
+        {
+          "type": "FIELD",
+          "name": "filename",
+          "content": {
+            "type": "SYMBOL",
+            "name": "string"
+          }
+        }
+      ]
+    },
+    "_state_policy_option": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "state_policy_keyword"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "if-bound"
+            },
+            {
+              "type": "STRING",
+              "value": "floating"
+            }
+          ]
+        }
+      ]
+    },
+    "_debug_option": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "debug_keyword"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "none"
+            },
+            {
+              "type": "STRING",
+              "value": "urgent"
+            },
+            {
+              "type": "STRING",
+              "value": "misc"
+            },
+            {
+              "type": "STRING",
+              "value": "loud"
+            }
+          ]
+        }
+      ]
+    },
+    "_skip_option": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "skip_keyword"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "on_keyword"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "ifspec"
+        }
+      ]
+    },
+    "_state_defaults_option": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "state_defaults_keyword"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "state_opt_list"
+        }
+      ]
+    },
+    "_keep_counters_option": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "keepcounters_keyword"
+        }
+      ]
+    },
+    "_syncookies_option": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "syncookies_keyword"
+        },
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "never"
+            },
+            {
+              "type": "STRING",
+              "value": "adaptative"
+            },
+            {
+              "type": "STRING",
+              "value": "always"
+            }
+          ]
+        }
+      ]
+    },
+    "optimization_hint": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "normal"
+        },
+        {
+          "type": "STRING",
+          "value": "satellite"
+        },
+        {
+          "type": "STRING",
+          "value": "high-latency"
+        },
+        {
+          "type": "STRING",
+          "value": "conservative"
+        },
+        {
+          "type": "STRING",
+          "value": "aggressive"
+        }
+      ]
+    },
+    "ruleset_optimizer": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "none"
+        },
+        {
+          "type": "STRING",
+          "value": "basic"
+        },
+        {
+          "type": "STRING",
+          "value": "profile"
+        }
+      ]
+    },
+    "timeout_list": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "timeout_spec"
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "STRING",
+                "value": ","
+              },
+              {
+                "type": "SYMBOL",
+                "name": "timeout_spec"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "timeout_spec": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "timeout_type"
+        },
+        {
+          "type": "FIELD",
+          "name": "number",
+          "content": {
+            "type": "SYMBOL",
+            "name": "number"
+          }
+        }
+      ]
+    },
+    "timeout_type": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "tcp.first"
+        },
+        {
+          "type": "STRING",
+          "value": "tcp.opening"
+        },
+        {
+          "type": "STRING",
+          "value": "tcp.established"
+        },
+        {
+          "type": "STRING",
+          "value": "tcp.closing"
+        },
+        {
+          "type": "STRING",
+          "value": "tcp.finwait"
+        },
+        {
+          "type": "STRING",
+          "value": "tcp.closed"
+        },
+        {
+          "type": "STRING",
+          "value": "tcp.tsdiff"
+        },
+        {
+          "type": "STRING",
+          "value": "sctp.opening"
+        },
+        {
+          "type": "STRING",
+          "value": "sctp.established"
+        },
+        {
+          "type": "STRING",
+          "value": "sctp.closing"
+        },
+        {
+          "type": "STRING",
+          "value": "sctp.closed"
+        },
+        {
+          "type": "STRING",
+          "value": "udp.first"
+        },
+        {
+          "type": "STRING",
+          "value": "udp.single"
+        },
+        {
+          "type": "STRING",
+          "value": "udp.multiple"
+        },
+        {
+          "type": "STRING",
+          "value": "icmp.first"
+        },
+        {
+          "type": "STRING",
+          "value": "icmp.error"
+        },
+        {
+          "type": "STRING",
+          "value": "other.first"
+        },
+        {
+          "type": "STRING",
+          "value": "other.single"
+        },
+        {
+          "type": "STRING",
+          "value": "other.multiple"
+        },
+        {
+          "type": "STRING",
+          "value": "frag"
+        },
+        {
+          "type": "STRING",
+          "value": "interval"
+        },
+        {
+          "type": "STRING",
+          "value": "adaptive.start"
+        },
+        {
+          "type": "STRING",
+          "value": "adaptive.end"
+        },
+        {
+          "type": "STRING",
+          "value": "src.track"
+        }
+      ]
+    },
+    "limit_list": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "limit_spec"
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "STRING",
+                "value": ","
+              },
+              {
+                "type": "SYMBOL",
+                "name": "limit_spec"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "limit_spec": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "states"
+            },
+            {
+              "type": "STRING",
+              "value": "src-nodes"
+            },
+            {
+              "type": "STRING",
+              "value": "frags"
+            },
+            {
+              "type": "STRING",
+              "value": "table-entries"
+            }
+          ]
+        },
+        {
+          "type": "FIELD",
+          "name": "number",
+          "content": {
+            "type": "SYMBOL",
+            "name": "number"
+          }
+        }
+      ]
+    },
+    "ifspec": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "interface"
+        },
+        {
+          "type": "SEQ",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "{"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "interface_list"
+            },
+            {
+              "type": "STRING",
+              "value": "}"
+            }
+          ]
+        }
+      ]
+    },
+    "interface_list": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "interface"
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "STRING",
+                "value": ","
+              },
+              {
+                "type": "SYMBOL",
+                "name": "interface"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "interface": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "not_operator"
+            },
+            {
+              "type": "BLANK"
+            }
+          ]
+        },
+        {
+          "type": "FIELD",
+          "name": "interface",
+          "content": {
+            "type": "SYMBOL",
+            "name": "identifier"
+          }
+        }
+      ]
+    },
+    "state_opt_list": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "state_opt"
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "STRING",
+                "value": ","
+              },
+              {
+                "type": "SYMBOL",
+                "name": "state_opt"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "state_opt": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SEQ",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "max_keyword"
+            },
+            {
+              "type": "FIELD",
+              "name": "number",
+              "content": {
+                "type": "SYMBOL",
+                "name": "number"
+              }
+            }
+          ]
+        },
+        {
+          "type": "SYMBOL",
+          "name": "no_sync_keyword"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "timeout_spec"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "sloppy_keyword"
+        },
+        {
+          "type": "SEQ",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "source_track_keyword"
+            },
+            {
+              "type": "CHOICE",
+              "members": [
+                {
+                  "type": "CHOICE",
+                  "members": [
+                    {
+                      "type": "SYMBOL",
+                      "name": "rule_keyword"
+                    },
+                    {
+                      "type": "SYMBOL",
+                      "name": "global_keyword"
+                    }
+                  ]
+                },
+                {
+                  "type": "BLANK"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "SEQ",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "max_src_nodes_keyword"
+            },
+            {
+              "type": "FIELD",
+              "name": "number",
+              "content": {
+                "type": "SYMBOL",
+                "name": "number"
+              }
+            }
+          ]
+        },
+        {
+          "type": "SEQ",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "max_src_states_keyword"
+            },
+            {
+              "type": "FIELD",
+              "name": "number",
+              "content": {
+                "type": "SYMBOL",
+                "name": "number"
+              }
+            }
+          ]
+        },
+        {
+          "type": "SEQ",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "max_src_conn_keyword"
+            },
+            {
+              "type": "FIELD",
+              "name": "number",
+              "content": {
+                "type": "SYMBOL",
+                "name": "number"
+              }
+            }
+          ]
+        },
+        {
+          "type": "SEQ",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "max_src_conn_rate_keyword"
+            },
+            {
+              "type": "FIELD",
+              "name": "number",
+              "content": {
+                "type": "SYMBOL",
+                "name": "number"
+              }
+            },
+            {
+              "type": "STRING",
+              "value": "/"
+            },
+            {
+              "type": "FIELD",
+              "name": "number",
+              "content": {
+                "type": "SYMBOL",
+                "name": "number"
+              }
+            }
+          ]
+        },
+        {
+          "type": "SEQ",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "overload_keyword"
+            },
+            {
+              "type": "STRING",
+              "value": "<"
+            },
+            {
+              "type": "FIELD",
+              "name": "string",
+              "content": {
+                "type": "SYMBOL",
+                "name": "identifier"
+              }
+            },
+            {
+              "type": "STRING",
+              "value": ">"
+            },
+            {
+              "type": "CHOICE",
+              "members": [
+                {
+                  "type": "SYMBOL",
+                  "name": "flush_keyword"
+                },
+                {
+                  "type": "BLANK"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "SYMBOL",
+          "name": "if_bound_keyword"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "floating_keyword"
+        }
+      ]
+    },
+    "identifier": {
+      "type": "PATTERN",
+      "value": "[_\\p{XID_Start}][_\\p{XID_Continue}]*"
+    },
+    "string": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "\""
+        },
+        {
+          "type": "PATTERN",
+          "value": "[^\"\\n]*"
+        },
+        {
+          "type": "STRING",
+          "value": "\""
+        }
+      ]
+    },
+    "number": {
+      "type": "PATTERN",
+      "value": "\\d+"
+    },
+    "hex_number": {
+      "type": "PATTERN",
+      "value": "0x[0-9a-fA-F]+"
+    },
+    "not_operator": {
+      "type": "STRING",
+      "value": "!"
+    },
+    "all_keyword": {
+      "type": "STRING",
+      "value": "all"
+    },
+    "allow_opts_keyword": {
+      "type": "STRING",
+      "value": "allow-opts"
+    },
+    "altq_keyword": {
+      "type": "STRING",
+      "value": "altq"
+    },
+    "anchor_keyword": {
+      "type": "STRING",
+      "value": "anchor"
+    },
+    "antispoof_keyword": {
+      "type": "STRING",
+      "value": "antispoof"
+    },
+    "any_keyword": {
+      "type": "STRING",
+      "value": "any"
+    },
+    "bandwidth_keyword": {
+      "type": "STRING",
+      "value": "bandwidth"
+    },
+    "binat_keyword": {
+      "type": "STRING",
+      "value": "binat"
+    },
+    "binat_anchor_keyword": {
+      "type": "STRING",
+      "value": "binat-anchor"
+    },
+    "bitmask_keyword": {
+      "type": "STRING",
+      "value": "bitmask"
+    },
+    "block_keyword": {
+      "type": "STRING",
+      "value": "block"
+    },
+    "block_policy_keyword": {
+      "type": "STRING",
+      "value": "block-policy"
+    },
+    "bridge_to_keyword": {
+      "type": "STRING",
+      "value": "bridge-to"
+    },
+    "buckets_keyword": {
+      "type": "STRING",
+      "value": "buckets"
+    },
+    "cbq_keyword": {
+      "type": "STRING",
+      "value": "cbq"
+    },
+    "code_keyword": {
+      "type": "STRING",
+      "value": "code"
+    },
+    "codelq_keyword": {
+      "type": "STRING",
+      "value": "codelq"
+    },
+    "debug_keyword": {
+      "type": "STRING",
+      "value": "debug"
+    },
+    "divert_reply_keyword": {
+      "type": "STRING",
+      "value": "divert-reply"
+    },
+    "divert_to_keyword": {
+      "type": "STRING",
+      "value": "divert-to"
+    },
+    "dnpipe_keyword": {
+      "type": "STRING",
+      "value": "dnpipe"
+    },
+    "dnqueue_keyword": {
+      "type": "STRING",
+      "value": "dnqueue"
+    },
+    "drop_keyword": {
+      "type": "STRING",
+      "value": "drop"
+    },
+    "dup_to_keyword": {
+      "type": "STRING",
+      "value": "dup-to"
+    },
+    "ether_keyword": {
+      "type": "STRING",
+      "value": "ether"
+    },
+    "fail_policy_keyword": {
+      "type": "STRING",
+      "value": "fail-policy"
+    },
+    "fairq_keyword": {
+      "type": "STRING",
+      "value": "fairq"
+    },
+    "fastroute_keyword": {
+      "type": "STRING",
+      "value": "fastroute"
+    },
+    "file_keyword": {
+      "type": "STRING",
+      "value": "file"
+    },
+    "fingerprints_keyword": {
+      "type": "STRING",
+      "value": "fingerprints"
+    },
+    "flags_keyword": {
+      "type": "STRING",
+      "value": "flags"
+    },
+    "floating_keyword": {
+      "type": "STRING",
+      "value": "floating"
+    },
+    "flush_keyword": {
+      "type": "STRING",
+      "value": "flush"
+    },
+    "for_keyword": {
+      "type": "STRING",
+      "value": "for"
+    },
+    "fragment_keyword": {
+      "type": "STRING",
+      "value": "fragment"
+    },
+    "from_keyword": {
+      "type": "STRING",
+      "value": "from"
+    },
+    "global_keyword": {
+      "type": "STRING",
+      "value": "global"
+    },
+    "group_keyword": {
+      "type": "STRING",
+      "value": "group"
+    },
+    "hfsc_keyword": {
+      "type": "STRING",
+      "value": "hfsc"
+    },
+    "hogs_keyword": {
+      "type": "STRING",
+      "value": "hogs"
+    },
+    "hostid_keyword": {
+      "type": "STRING",
+      "value": "hostid"
+    },
+    "icmp_type_keyword": {
+      "type": "STRING",
+      "value": "icmp-type"
+    },
+    "icmp6_type_keyword": {
+      "type": "STRING",
+      "value": "icmp6-type"
+    },
+    "if_bound_keyword": {
+      "type": "STRING",
+      "value": "if-bound"
+    },
+    "in_keyword": {
+      "type": "STRING",
+      "value": "in"
+    },
+    "include_keyword": {
+      "type": "STRING",
+      "value": "include"
+    },
+    "inet_keyword": {
+      "type": "STRING",
+      "value": "inet"
+    },
+    "inet6_keyword": {
+      "type": "STRING",
+      "value": "inet6"
+    },
+    "interval_keyword": {
+      "type": "STRING",
+      "value": "interval"
+    },
+    "keep_keyword": {
+      "type": "STRING",
+      "value": "keep"
+    },
+    "keepcounters_keyword": {
+      "type": "STRING",
+      "value": "keepcounters"
+    },
+    "l3_keyword": {
+      "type": "STRING",
+      "value": "l3"
+    },
+    "label_keyword": {
+      "type": "STRING",
+      "value": "label"
+    },
+    "limit_keyword": {
+      "type": "STRING",
+      "value": "limit"
+    },
+    "linkshare_keyword": {
+      "type": "STRING",
+      "value": "linkshare"
+    },
+    "load_keyword": {
+      "type": "STRING",
+      "value": "load"
+    },
+    "log_keyword": {
+      "type": "STRING",
+      "value": "log"
+    },
+    "loginterface_keyword": {
+      "type": "STRING",
+      "value": "loginterface"
+    },
+    "map_e_portset_keyword": {
+      "type": "STRING",
+      "value": "map-e-portset"
+    },
+    "match_keyword": {
+      "type": "STRING",
+      "value": "match"
+    },
+    "max_keyword": {
+      "type": "STRING",
+      "value": "max"
+    },
+    "max_mss_keyword": {
+      "type": "STRING",
+      "value": "max-mss"
+    },
+    "max_src_conn_keyword": {
+      "type": "STRING",
+      "value": "max-src-conn"
+    },
+    "max_src_conn_rate_keyword": {
+      "type": "STRING",
+      "value": "max-src-conn-rate"
+    },
+    "max_src_nodes_keyword": {
+      "type": "STRING",
+      "value": "max-src-nodes"
+    },
+    "max_src_states_keyword": {
+      "type": "STRING",
+      "value": "max-src-states"
+    },
+    "min_ttl_keyword": {
+      "type": "STRING",
+      "value": "min-ttl"
+    },
+    "modulate_keyword": {
+      "type": "STRING",
+      "value": "modulate"
+    },
+    "nat_keyword": {
+      "type": "STRING",
+      "value": "nat"
+    },
+    "nat_anchor_keyword": {
+      "type": "STRING",
+      "value": "nat-anchor"
+    },
+    "no_keyword": {
+      "type": "STRING",
+      "value": "no"
+    },
+    "no_df_keyword": {
+      "type": "STRING",
+      "value": "no-df"
+    },
+    "no_route_keyword": {
+      "type": "STRING",
+      "value": "no-route"
+    },
+    "no_sync_keyword": {
+      "type": "STRING",
+      "value": "no-sync"
+    },
+    "on_keyword": {
+      "type": "STRING",
+      "value": "on"
+    },
+    "optimization_keyword": {
+      "type": "STRING",
+      "value": "optimization"
+    },
+    "os_keyword": {
+      "type": "STRING",
+      "value": "os"
+    },
+    "out_keyword": {
+      "type": "STRING",
+      "value": "out"
+    },
+    "overload_keyword": {
+      "type": "STRING",
+      "value": "overload"
+    },
+    "pass_keyword": {
+      "type": "STRING",
+      "value": "pass"
+    },
+    "pflow_keyword": {
+      "type": "STRING",
+      "value": "pflow"
+    },
+    "port_keyword": {
+      "type": "STRING",
+      "value": "port"
+    },
+    "prio_keyword": {
+      "type": "STRING",
+      "value": "prio"
+    },
+    "priority_keyword": {
+      "type": "STRING",
+      "value": "priority"
+    },
+    "priq_keyword": {
+      "type": "STRING",
+      "value": "priq"
+    },
+    "probability_keyword": {
+      "type": "STRING",
+      "value": "probability"
+    },
+    "proto_keyword": {
+      "type": "STRING",
+      "value": "proto"
+    },
+    "qlimit_keyword": {
+      "type": "STRING",
+      "value": "qlimit"
+    },
+    "queue_keyword": {
+      "type": "STRING",
+      "value": "queue"
+    },
+    "quick_keyword": {
+      "type": "STRING",
+      "value": "quick"
+    },
+    "random_keyword": {
+      "type": "STRING",
+      "value": "random"
+    },
+    "random_id_keyword": {
+      "type": "STRING",
+      "value": "random-id"
+    },
+    "rdr_keyword": {
+      "type": "STRING",
+      "value": "rdr"
+    },
+    "rdr_anchor_keyword": {
+      "type": "STRING",
+      "value": "rdr-anchor"
+    },
+    "realtime_keyword": {
+      "type": "STRING",
+      "value": "realtime"
+    },
+    "reassemble_keyword": {
+      "type": "STRING",
+      "value": "reassemble"
+    },
+    "reply_to_keyword": {
+      "type": "STRING",
+      "value": "reply-to"
+    },
+    "require_order_keyword": {
+      "type": "STRING",
+      "value": "require-order"
+    },
+    "return_keyword": {
+      "type": "STRING",
+      "value": "return"
+    },
+    "return_icmp_keyword": {
+      "type": "STRING",
+      "value": "return-icmp"
+    },
+    "return_icmp6_keyword": {
+      "type": "STRING",
+      "value": "return-icmp6"
+    },
+    "return_rst_keyword": {
+      "type": "STRING",
+      "value": "return-rst"
+    },
+    "ridentifier_keyword": {
+      "type": "STRING",
+      "value": "ridentifier"
+    },
+    "round_robin_keyword": {
+      "type": "STRING",
+      "value": "round-robin"
+    },
+    "route_keyword": {
+      "type": "STRING",
+      "value": "route"
+    },
+    "route_to_keyword": {
+      "type": "STRING",
+      "value": "route-to"
+    },
+    "rtable_keyword": {
+      "type": "STRING",
+      "value": "rtable"
+    },
+    "rule_keyword": {
+      "type": "STRING",
+      "value": "rule"
+    },
+    "ruleset_optimization_keyword": {
+      "type": "STRING",
+      "value": "ruleset-optimization"
+    },
+    "scrub_keyword": {
+      "type": "STRING",
+      "value": "scrub"
+    },
+    "self_keyword": {
+      "type": "STRING",
+      "value": "self"
+    },
+    "set_keyword": {
+      "type": "STRING",
+      "value": "set"
+    },
+    "set_tos_keyword": {
+      "type": "STRING",
+      "value": "set-tos"
+    },
+    "skip_keyword": {
+      "type": "STRING",
+      "value": "skip"
+    },
+    "sloppy_keyword": {
+      "type": "STRING",
+      "value": "sloppy"
+    },
+    "source_hash_keyword": {
+      "type": "STRING",
+      "value": "source-hash"
+    },
+    "source_track_keyword": {
+      "type": "STRING",
+      "value": "source-track"
+    },
+    "state_keyword": {
+      "type": "STRING",
+      "value": "state"
+    },
+    "state_defaults_keyword": {
+      "type": "STRING",
+      "value": "state-defaults"
+    },
+    "state_policy_keyword": {
+      "type": "STRING",
+      "value": "state-policy"
+    },
+    "static_port_keyword": {
+      "type": "STRING",
+      "value": "static-port"
+    },
+    "sticky_address_keyword": {
+      "type": "STRING",
+      "value": "sticky-address"
+    },
+    "syncookies_keyword": {
+      "type": "STRING",
+      "value": "syncookies"
+    },
+    "synproxy_keyword": {
+      "type": "STRING",
+      "value": "synproxy"
+    },
+    "table_keyword": {
+      "type": "STRING",
+      "value": "table"
+    },
+    "tag_keyword": {
+      "type": "STRING",
+      "value": "tag"
+    },
+    "tagged_keyword": {
+      "type": "STRING",
+      "value": "tagged"
+    },
+    "target_keyword": {
+      "type": "STRING",
+      "value": "target"
+    },
+    "tbrsize_keyword": {
+      "type": "STRING",
+      "value": "tbrsize"
+    },
+    "timeout_keyword": {
+      "type": "STRING",
+      "value": "timeout"
+    },
+    "to_keyword": {
+      "type": "STRING",
+      "value": "to"
+    },
+    "tos_keyword": {
+      "type": "STRING",
+      "value": "tos"
+    },
+    "ttl_keyword": {
+      "type": "STRING",
+      "value": "ttl"
+    },
+    "upperlimit_keyword": {
+      "type": "STRING",
+      "value": "upperlimit"
+    },
+    "urpf_failed_keyword": {
+      "type": "STRING",
+      "value": "urpf-failed"
+    },
+    "user_keyword": {
+      "type": "STRING",
+      "value": "user"
+    },
+    "yes_keyword": {
+      "type": "STRING",
+      "value": "yes"
+    }
+  },
+  "extras": [
+    {
+      "type": "SYMBOL",
+      "name": "comment"
+    },
+    {
+      "type": "PATTERN",
+      "value": "\\s"
+    },
+    {
+      "type": "PATTERN",
+      "value": "\\\\\\r?\\n"
+    }
+  ],
+  "conflicts": [],
+  "precedences": [],
+  "externals": [],
+  "inline": [],
+  "supertypes": []
+}

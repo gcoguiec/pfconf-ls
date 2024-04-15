@@ -4,10 +4,7 @@
     "module": "Node16",
     "moduleResolution": "Node16",
     "lib": ["ES2021"],
-    "outDir": "out",
     "sourceMap": true,
-    "rootDir": ".",
-    "verbatimModuleSyntax": true,
     "strict": true,
     "strictNullChecks": true,
     "allowUnusedLabels": false,
@@ -23,6 +20,5 @@
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true
-  },
-  "include": ["src", "tests"]
+  }
 }

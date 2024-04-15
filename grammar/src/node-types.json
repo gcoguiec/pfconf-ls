@@ -1,0 +1,870 @@
+[
+  {
+    "type": "comment",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "floating_keyword",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "if_bound_keyword",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "ifspec",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "interface",
+          "named": true
+        },
+        {
+          "type": "interface_list",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "interface",
+    "named": true,
+    "fields": {
+      "interface": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "not_operator",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "interface_list",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "interface",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "limit_list",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "limit_spec",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "limit_spec",
+    "named": true,
+    "fields": {
+      "number": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "number",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "line",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "option",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "lines",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "line",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "no_keyword",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "optimization_hint",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "option",
+    "named": true,
+    "fields": {
+      "filename": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "string",
+            "named": true
+          }
+        ]
+      },
+      "hint": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "optimization_hint",
+            "named": true
+          }
+        ]
+      },
+      "interface": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      },
+      "number": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "hex_number",
+            "named": true
+          },
+          {
+            "type": "number",
+            "named": true
+          }
+        ]
+      },
+      "optimizer": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "ruleset_optimizer",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "block_policy_keyword",
+          "named": true
+        },
+        {
+          "type": "debug_keyword",
+          "named": true
+        },
+        {
+          "type": "drop_keyword",
+          "named": true
+        },
+        {
+          "type": "fail_policy_keyword",
+          "named": true
+        },
+        {
+          "type": "fingerprints_keyword",
+          "named": true
+        },
+        {
+          "type": "hostid_keyword",
+          "named": true
+        },
+        {
+          "type": "ifspec",
+          "named": true
+        },
+        {
+          "type": "keepcounters_keyword",
+          "named": true
+        },
+        {
+          "type": "limit_keyword",
+          "named": true
+        },
+        {
+          "type": "limit_list",
+          "named": true
+        },
+        {
+          "type": "limit_spec",
+          "named": true
+        },
+        {
+          "type": "loginterface_keyword",
+          "named": true
+        },
+        {
+          "type": "no_df_keyword",
+          "named": true
+        },
+        {
+          "type": "no_keyword",
+          "named": true
+        },
+        {
+          "type": "on_keyword",
+          "named": true
+        },
+        {
+          "type": "optimization_keyword",
+          "named": true
+        },
+        {
+          "type": "reassemble_keyword",
+          "named": true
+        },
+        {
+          "type": "require_order_keyword",
+          "named": true
+        },
+        {
+          "type": "return_keyword",
+          "named": true
+        },
+        {
+          "type": "ruleset_optimization_keyword",
+          "named": true
+        },
+        {
+          "type": "set_keyword",
+          "named": true
+        },
+        {
+          "type": "skip_keyword",
+          "named": true
+        },
+        {
+          "type": "state_defaults_keyword",
+          "named": true
+        },
+        {
+          "type": "state_opt_list",
+          "named": true
+        },
+        {
+          "type": "state_policy_keyword",
+          "named": true
+        },
+        {
+          "type": "syncookies_keyword",
+          "named": true
+        },
+        {
+          "type": "timeout_keyword",
+          "named": true
+        },
+        {
+          "type": "timeout_list",
+          "named": true
+        },
+        {
+          "type": "timeout_spec",
+          "named": true
+        },
+        {
+          "type": "yes_keyword",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "ruleset_optimizer",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "state_opt",
+    "named": true,
+    "fields": {
+      "number": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "number",
+            "named": true
+          }
+        ]
+      },
+      "string": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "floating_keyword",
+          "named": true
+        },
+        {
+          "type": "flush_keyword",
+          "named": true
+        },
+        {
+          "type": "global_keyword",
+          "named": true
+        },
+        {
+          "type": "if_bound_keyword",
+          "named": true
+        },
+        {
+          "type": "max_keyword",
+          "named": true
+        },
+        {
+          "type": "max_src_conn_keyword",
+          "named": true
+        },
+        {
+          "type": "max_src_conn_rate_keyword",
+          "named": true
+        },
+        {
+          "type": "max_src_nodes_keyword",
+          "named": true
+        },
+        {
+          "type": "max_src_states_keyword",
+          "named": true
+        },
+        {
+          "type": "no_sync_keyword",
+          "named": true
+        },
+        {
+          "type": "overload_keyword",
+          "named": true
+        },
+        {
+          "type": "rule_keyword",
+          "named": true
+        },
+        {
+          "type": "sloppy_keyword",
+          "named": true
+        },
+        {
+          "type": "source_track_keyword",
+          "named": true
+        },
+        {
+          "type": "timeout_spec",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "state_opt_list",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "state_opt",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "string",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "timeout_list",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "timeout_spec",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "timeout_spec",
+    "named": true,
+    "fields": {
+      "number": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "number",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "timeout_type",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "timeout_type",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "yes_keyword",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "\"",
+    "named": false
+  },
+  {
+    "type": "#",
+    "named": false
+  },
+  {
+    "type": ",",
+    "named": false
+  },
+  {
+    "type": "/",
+    "named": false
+  },
+  {
+    "type": "<",
+    "named": false
+  },
+  {
+    "type": ">",
+    "named": false
+  },
+  {
+    "type": "adaptative",
+    "named": false
+  },
+  {
+    "type": "adaptive.end",
+    "named": false
+  },
+  {
+    "type": "adaptive.start",
+    "named": false
+  },
+  {
+    "type": "aggressive",
+    "named": false
+  },
+  {
+    "type": "always",
+    "named": false
+  },
+  {
+    "type": "basic",
+    "named": false
+  },
+  {
+    "type": "block_policy_keyword",
+    "named": true
+  },
+  {
+    "type": "conservative",
+    "named": false
+  },
+  {
+    "type": "debug_keyword",
+    "named": true
+  },
+  {
+    "type": "drop_keyword",
+    "named": true
+  },
+  {
+    "type": "fail_policy_keyword",
+    "named": true
+  },
+  {
+    "type": "fingerprints_keyword",
+    "named": true
+  },
+  {
+    "type": "floating",
+    "named": false
+  },
+  {
+    "type": "flush_keyword",
+    "named": true
+  },
+  {
+    "type": "frag",
+    "named": false
+  },
+  {
+    "type": "frags",
+    "named": false
+  },
+  {
+    "type": "global_keyword",
+    "named": true
+  },
+  {
+    "type": "hex_number",
+    "named": true
+  },
+  {
+    "type": "high-latency",
+    "named": false
+  },
+  {
+    "type": "hostid_keyword",
+    "named": true
+  },
+  {
+    "type": "icmp.error",
+    "named": false
+  },
+  {
+    "type": "icmp.first",
+    "named": false
+  },
+  {
+    "type": "identifier",
+    "named": true
+  },
+  {
+    "type": "if-bound",
+    "named": false
+  },
+  {
+    "type": "interval",
+    "named": false
+  },
+  {
+    "type": "keepcounters_keyword",
+    "named": true
+  },
+  {
+    "type": "limit_keyword",
+    "named": true
+  },
+  {
+    "type": "loginterface_keyword",
+    "named": true
+  },
+  {
+    "type": "loud",
+    "named": false
+  },
+  {
+    "type": "max_keyword",
+    "named": true
+  },
+  {
+    "type": "max_src_conn_keyword",
+    "named": true
+  },
+  {
+    "type": "max_src_conn_rate_keyword",
+    "named": true
+  },
+  {
+    "type": "max_src_nodes_keyword",
+    "named": true
+  },
+  {
+    "type": "max_src_states_keyword",
+    "named": true
+  },
+  {
+    "type": "misc",
+    "named": false
+  },
+  {
+    "type": "never",
+    "named": false
+  },
+  {
+    "type": "no",
+    "named": false
+  },
+  {
+    "type": "no_df_keyword",
+    "named": true
+  },
+  {
+    "type": "no_sync_keyword",
+    "named": true
+  },
+  {
+    "type": "none",
+    "named": false
+  },
+  {
+    "type": "normal",
+    "named": false
+  },
+  {
+    "type": "not_operator",
+    "named": true
+  },
+  {
+    "type": "number",
+    "named": true
+  },
+  {
+    "type": "on_keyword",
+    "named": true
+  },
+  {
+    "type": "optimization_keyword",
+    "named": true
+  },
+  {
+    "type": "other.first",
+    "named": false
+  },
+  {
+    "type": "other.multiple",
+    "named": false
+  },
+  {
+    "type": "other.single",
+    "named": false
+  },
+  {
+    "type": "overload_keyword",
+    "named": true
+  },
+  {
+    "type": "profile",
+    "named": false
+  },
+  {
+    "type": "reassemble_keyword",
+    "named": true
+  },
+  {
+    "type": "require_order_keyword",
+    "named": true
+  },
+  {
+    "type": "return_keyword",
+    "named": true
+  },
+  {
+    "type": "rule_keyword",
+    "named": true
+  },
+  {
+    "type": "ruleset_optimization_keyword",
+    "named": true
+  },
+  {
+    "type": "satellite",
+    "named": false
+  },
+  {
+    "type": "sctp.closed",
+    "named": false
+  },
+  {
+    "type": "sctp.closing",
+    "named": false
+  },
+  {
+    "type": "sctp.established",
+    "named": false
+  },
+  {
+    "type": "sctp.opening",
+    "named": false
+  },
+  {
+    "type": "set_keyword",
+    "named": true
+  },
+  {
+    "type": "skip_keyword",
+    "named": true
+  },
+  {
+    "type": "sloppy_keyword",
+    "named": true
+  },
+  {
+    "type": "source_track_keyword",
+    "named": true
+  },
+  {
+    "type": "src-nodes",
+    "named": false
+  },
+  {
+    "type": "src.track",
+    "named": false
+  },
+  {
+    "type": "state_defaults_keyword",
+    "named": true
+  },
+  {
+    "type": "state_policy_keyword",
+    "named": true
+  },
+  {
+    "type": "states",
+    "named": false
+  },
+  {
+    "type": "syncookies_keyword",
+    "named": true
+  },
+  {
+    "type": "table-entries",
+    "named": false
+  },
+  {
+    "type": "tcp.closed",
+    "named": false
+  },
+  {
+    "type": "tcp.closing",
+    "named": false
+  },
+  {
+    "type": "tcp.established",
+    "named": false
+  },
+  {
+    "type": "tcp.finwait",
+    "named": false
+  },
+  {
+    "type": "tcp.first",
+    "named": false
+  },
+  {
+    "type": "tcp.opening",
+    "named": false
+  },
+  {
+    "type": "tcp.tsdiff",
+    "named": false
+  },
+  {
+    "type": "timeout_keyword",
+    "named": true
+  },
+  {
+    "type": "udp.first",
+    "named": false
+  },
+  {
+    "type": "udp.multiple",
+    "named": false
+  },
+  {
+    "type": "udp.single",
+    "named": false
+  },
+  {
+    "type": "urgent",
+    "named": false
+  },
+  {
+    "type": "yes",
+    "named": false
+  },
+  {
+    "type": "{",
+    "named": false
+  },
+  {
+    "type": "}",
+    "named": false
+  }
+]

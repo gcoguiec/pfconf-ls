@@ -9,6 +9,7 @@
     "**/*.json",
     ".cspell.json",
     "out/**",
+    "dist/**",
     "coverage/**"
   ],
   "dictionaries": [

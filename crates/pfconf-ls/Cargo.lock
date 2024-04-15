@@ -292,22 +292,12 @@ dependencies = [
  "lsp-server",
  "lsp-types",
  "miette",
- "pfconf-tree-sitter",
  "thiserror",
  "tracing",
  "tracing-log",
  "tracing-subscriber",
  "windows-sys 0.52.0",
  "xflags",
-]
-
-[[package]]
-name = "pfconf-tree-sitter"
-version = "0.0.1"
-dependencies = [
- "cc",
- "tree-sitter 0.20.10",
- "tree-sitter-highlight",
 ]
 
 [[package]]
@@ -615,38 +605,6 @@ dependencies = [
  "thread_local",
  "tracing",
  "tracing-core",
-]
-
-[[package]]
-name = "tree-sitter"
-version = "0.20.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e747b1f9b7b931ed39a548c1fae149101497de3c1fc8d9e18c62c1a66c683d3d"
-dependencies = [
- "cc",
- "regex",
-]
-
-[[package]]
-name = "tree-sitter"
-version = "0.22.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "688200d842c76dd88f9a7719ecb0483f79f5a766fb1c100756d5d8a059abc71b"
-dependencies = [
- "cc",
- "regex",
-]
-
-[[package]]
-name = "tree-sitter-highlight"
-version = "0.22.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9442daef896b114ed618a5e11c9ba9663796ab3600e544d57f2dc980fa0d2d78"
-dependencies = [
- "lazy_static",
- "regex",
- "thiserror",
- "tree-sitter 0.22.5",
 ]
 
 [[package]]

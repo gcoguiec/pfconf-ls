@@ -1,0 +1,337 @@
+===
+reassemble
+===
+set reassemble no
+set reassemble yes
+set reassemble yes no-df
+---
+(lines
+  (line
+    (option
+      (set_keyword)
+      (reassemble_keyword)
+      (no_keyword)
+    )
+  )
+  (line
+    (option
+      (set_keyword)
+      (reassemble_keyword)
+      (yes_keyword)
+    )
+  )
+  (line
+    (option
+      (set_keyword)
+      (reassemble_keyword)
+      (yes_keyword)
+      (no_df_keyword)
+    )
+  )
+)
+
+===
+optimization
+===
+set optimization normal
+---
+(lines
+  (line
+    (option
+      (set_keyword)
+      (optimization_keyword)
+      hint: (optimization_hint)
+    )
+  )
+)
+
+===
+ruleset-optimization
+===
+set ruleset-optimization none
+---
+(lines
+  (line
+    (option
+      (set_keyword)
+      (ruleset_optimization_keyword)
+      optimizer: (ruleset_optimizer)
+    )
+  )
+)
+
+===
+timeout
+===
+set timeout tcp.first 423
+set timeout { icmp.first 464, icmp.error 34 }
+---
+(lines
+  (line
+    (option
+      (set_keyword)
+      (timeout_keyword)
+      (timeout_spec
+        (timeout_type)
+        (number)
+      )
+    )
+  )
+  (line
+    (option
+      (set_keyword)
+      (timeout_keyword)
+      (timeout_list
+        (timeout_spec
+          (timeout_type)
+          (number)
+        )
+        (timeout_spec
+          (timeout_type)
+          (number)
+        )
+      )
+    )
+  )
+)
+
+===
+limit
+===
+set limit states 50000
+---
+(lines
+  (line
+    (option
+      (set_keyword)
+      (limit_keyword)
+      (limit_spec
+        number: (number)
+      )
+    )
+  )
+)
+
+===
+interface
+===
+set loginterface pflog0
+---
+(lines
+  (line
+    (option
+      (set_keyword)
+      (loginterface_keyword)
+      interface: (identifier)
+    )
+  )
+)
+
+===
+hostid
+===
+set hostid 1
+set hostid 0x00000001
+---
+(lines
+  (line
+    (option
+      (set_keyword)
+      (hostid_keyword)
+      number: (number)
+    )
+  )
+  (line
+    (option
+      (set_keyword)
+      (hostid_keyword)
+      number: (hex_number)
+    )
+  )
+)
+
+===
+block-policy
+===
+set block-policy return
+---
+(lines
+  (line
+    (option
+      (set_keyword)
+      (block_policy_keyword)
+      (return_keyword)
+    )
+  )
+)
+
+===
+fail-policy
+===
+set fail-policy drop
+---
+(lines
+  (line
+    (option
+      (set_keyword)
+      (fail_policy_keyword)
+      (drop_keyword)
+    )
+  )
+)
+
+===
+require-order
+===
+set require-order yes
+---
+(lines
+  (line
+    (option
+      (set_keyword)
+      (require_order_keyword)
+    )
+  )
+)
+
+===
+fingerprints
+===
+set fingerprints "/etc/pf.os"
+---
+(lines
+  (line
+    (option
+      (set_keyword)
+      (fingerprints_keyword)
+      (string)
+    )
+  )
+)
+
+===
+state-policy
+===
+set state-policy if-bound
+---
+(lines
+  (line
+    (option
+      (set_keyword)
+      (state_policy_keyword)
+    )
+  )
+)
+
+===
+skip
+===
+set skip on lo
+set skip on { lo, igb0 }
+---
+(lines
+  (line
+    (option
+      (set_keyword)
+      (skip_keyword)
+      (on_keyword)
+      (ifspec
+        (interface
+          (identifier)
+        )
+      )
+    )
+  )
+  (line
+    (option
+      (set_keyword)
+      (skip_keyword)
+      (on_keyword)
+      (ifspec
+        (interface_list
+          (interface
+            (identifier)
+          )
+          (interface
+            (identifier)
+          )
+        )
+      )
+    )
+  )
+)
+
+===
+state-defaults
+===
+set state-defaults sloppy
+set state-defaults frag 1600
+set state-defaults source-track global
+set state-defaults max-src-conn-rate 3/99
+---
+(lines
+  (line
+    (option
+      (set_keyword)
+      (state_defaults_keyword)
+      (state_opt_list
+        (state_opt
+          (sloppy_keyword)
+        )
+      )
+    )
+  )
+  (line
+    (option
+      (set_keyword)
+      (state_defaults_keyword)
+      (state_opt_list
+        (state_opt
+          (timeout_spec
+            (timeout_type)
+            (number)
+          )
+        )
+      )
+    )
+  )
+  (line
+    (option
+      (set_keyword)
+      (state_defaults_keyword)
+      (state_opt_list
+        (state_opt
+          (source_track_keyword)
+          (global_keyword)
+        )
+      )
+    )
+  )
+  (line
+    (option
+      (set_keyword)
+      (state_defaults_keyword)
+      (state_opt_list
+        (state_opt
+          (max_src_conn_rate_keyword)
+          (number)
+          (number)
+        )
+      )
+    )
+  )
+)
+
+===
+syncookies
+===
+set syncookies always
+---
+(lines
+  (line
+    (option
+      (set_keyword)
+      (syncookies_keyword)
+    )
+  )
+)

@@ -1,5 +1,5 @@
 try {
-  module.exports = require('./out/nodeClientMain');
+  module.exports = require('./out/main');
 } catch {
   module.exports = require('./dist/client');
 }

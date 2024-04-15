@@ -1,0 +1,71 @@
+{
+  "name": "tree-sitter-pfconf",
+  "version": "1.0.0",
+  "description": "FreeBSD Packet Filter (PF) grammar for tree-sitter",
+  "main": "bindings/node",
+  "types": "bindings/node",
+  "author": "Guillaume 'Yugo' Coguiec <mail@gcoguiec.com> (https://github.com/gcoguiec/)",
+  "license": "BSD-2-Clause",
+  "keywords": [
+    "freebsd",
+    "pf",
+    "pfconf",
+    "parser",
+    "grammar"
+  ],
+  "files": [
+    "grammar.js",
+    "binding.gyp",
+    "prebuilds/**",
+    "bindings/node/*",
+    "queries/*",
+    "src/**"
+  ],
+  "dependencies": {
+    "node-addon-api": "^8.0.0",
+    "node-gyp-build": "^4.8.0"
+  },
+  "peerDependencies": {
+    "tree-sitter": "^0.21.0"
+  },
+  "peerDependenciesMeta": {
+    "tree_sitter": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@gcoguiec/eslint-config-typescript": "^1.0.8",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-promise": "^6.1.1",
+    "prebuildify": "^6.0.0",
+    "prettier": "^3.2.5",
+    "tree-sitter-cli": "^0.22.2"
+  },
+  "scripts": {
+    "build": "tree-sitter build",
+    "fmt": "prettier --write '**/*.{js,cjs,mjs,ts,cts,mts,json,md}'",
+    "fmt:check": "prettier --check '**/*.{js,cjs,mjs,ts,cts,mts,json,md}'",
+    "hi": "tree-sitter highlight --scope source.pfconf",
+    "gen": "tree-sitter generate --no-bindings --abi=latest",
+    "parse": "tree-sitter parse",
+    "test": "tree-sitter test",
+    "install": "node-gyp-build",
+    "prebuildify": "prebuildify --napi --strip",
+    "lint": "DEBUG=eslint:cli-engine eslint grammar.js --ignore-path .gitignore"
+  },
+  "volta": {
+    "node": "21.6.2",
+    "pnpm": "8.15.4"
+  },
+  "packageManager": "pnpm@8.15.4",
+  "tree-sitter": [
+    {
+      "scope": "source.pfconf",
+      "file-types": [
+        "pfconf"
+      ]
+    }
+  ]
+}

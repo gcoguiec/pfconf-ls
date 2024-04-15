@@ -1,0 +1,760 @@
+/// <reference types="tree-sitter-cli/dsl" />
+// @ts-check
+
+module.exports = grammar({
+  name: 'pfconf',
+  extras: $ => [$.comment, /\s/, /\\\r?\n/],
+  rules: {
+    lines: $ => repeat($.line),
+    line: $ =>
+      choice(
+        $.option,
+        $.pf_rule,
+        $.scrub_rule,
+        $.antispoof_rule,
+        $.queue_rule,
+        // $.anchor_rule, @TODO FIXME
+        // $.anchor_close, @TODO FIXME
+        // $.load_anchor, @TODO FIXME
+        $.table_rule,
+        $.include
+      ),
+
+    comment: $ => seq('#', /.*/),
+
+    option: $ =>
+      seq(
+        'set',
+        choice(
+          $.timeout_option,
+          $.skip_option,
+          $.ruleset_optimization_option,
+          $.optimization_option,
+          $.limit_option,
+          $.loginterface_option,
+          $.block_policy_option,
+          $.state_policy_option,
+          $.state_defaults_option,
+          $.fingerprints_option,
+          $.skip_option,
+          $.debug_option,
+          $.reassemble_option
+        )
+      ),
+    timeout_option: $ =>
+      seq($.timeout_keyword, choice($.timeout, seq('{', $.timeout_list, '}'))),
+    ruleset_optimization_option: $ =>
+      seq($.ruleset_optimization_keyword, choice('none', 'basic', 'profile')),
+    optimization_option: $ =>
+      seq(
+        $.optimization_keyword,
+        choice(
+          'default',
+          'normal',
+          'high-latency',
+          'satellite',
+          'aggressive',
+          'conservative'
+        )
+      ),
+    limit_option: $ =>
+      seq($.limit_keyword, choice($.limit_item, seq('{', $.limit_list, '}'))),
+    loginterface_option: $ =>
+      seq($.loginterface_keyword, choice($.interface_name, 'none')),
+    block_policy_option: $ =>
+      seq($.block_policy_keyword, choice('drop', 'return')),
+    state_policy_option: $ =>
+      seq($.state_policy_keyword, choice('if-bound', 'floating')),
+    state_defaults_option: $ => seq($.state_defaults_keyword, $.state_opts),
+    fingerprints_option: $ =>
+      seq($.fingerprints_keyword, alias($.string, 'filename')),
+    skip_option: $ => seq($.skip_keyword, $.on_keyword, $.ifspec),
+    debug_option: $ =>
+      seq(
+        $.debug_keyword,
+        choice(
+          'emerg',
+          'alert',
+          'crit',
+          'err',
+          'warning',
+          'notice',
+          'info',
+          'debug'
+        )
+      ),
+    reassemble_option: $ =>
+      seq(
+        $.reassemble_keyword,
+        choice($.yes_keyword, $.no_keyword),
+        optional($.no_df_keyword)
+      ),
+
+    pf_rule: $ =>
+      seq(
+        $.action,
+        optional(choice($.in_keyword, $.out_keyword)),
+        optional(seq($.log_keyword, optional(seq('(', $.log_opts, ')')))),
+        optional(seq($.on_keyword, choice($.ifspec, seq('rdomain', $.number)))),
+        optional($.protospec),
+        optional($.host_list),
+        optional($.filter_opts)
+      ),
+
+    scrub_rule: $ =>
+      seq(
+        $.scrub_keyword,
+        optional(choice($.in_keyword, $.out_keyword)),
+        optional('logquick')
+      ),
+
+    log_opts: $ => list1($.log_opt),
+    log_opt: $ =>
+      seq(
+        choice($.all_keyword, 'matches', $.user_keyword, $.to_keyword),
+        $.interface_name_or_group
+      ),
+
+    filter_opts: $ => list1($.filter_opt),
+    filter_opt: $ =>
+      choice(
+        // $.user, @TODO FIXME
+        // $.group, @TODO FIXME
+        $.flags,
+        // $.icmp_type,@TODO FIXME
+        // $.icmp6_type, @TODO FIXME
+        seq($.tos_keyword, $.tos),
+        seq(
+          choice(
+            $.no_keyword,
+            $.keep_keyword,
+            $.modulate_keyword,
+            $.synproxy_keyword
+          ),
+          $.state_keyword,
+          optional(seq('(', $.state_opts, ')'))
+        ),
+        // seq($.scrub_keyword, '(', $.scrub_opts, ')'), @TODO FIXME
+        $.fragment_keyword,
+        $.allow_opts_keyword,
+        'once',
+        // seq('divert-packet', $.port_keyword, $.port), @TODO FIXME
+        $.divert_reply_keyword,
+        // seq($.divert_to_keyword, $.host, $.port_keyword, $.port), @TODO FIXME
+        seq($.label_keyword, field('string', $.string)), // @TODO string or raw_string?
+        seq($.tag_keyword, field('string', $.string)), // @TODO string or raw_string?
+        seq(
+          optional($.not_operator),
+          $.tagged_keyword,
+          field('string', $.string)
+        ),
+        seq(
+          'max-pkt-rate',
+          field('number', $.number),
+          '/',
+          field('seconds', $.number)
+        ), // @TODO is seconds a special type or just a number?
+        seq('set delay', field('number', $.number)),
+        seq(
+          'set prio',
+          choice(
+            field('number', $.number),
+            seq('(', list1(field('number', $.number)), ')')
+          )
+        ),
+        seq(
+          'set queue',
+          choice(
+            field('number', $.number),
+            seq('(', list1(field('string', $.string)), ')')
+          )
+        ),
+        seq($.rtable_keyword, field('number', $.number)),
+        seq($.probability_keyword, field('number', $.number), '%'),
+        seq($.prio_keyword, field('number', $.number))
+        // $.af_to_filter_opt, @TODO FIXME
+        // $.binat_to_filter_opt @TODO FIXME
+        // $.rdr_to_filter_opt, @TODO FIXME
+        // $.nat_to_filter_opt @TODO FIXME
+      ),
+
+    af_to_filter_opt: $ =>
+      seq(
+        'af-to',
+        $.af,
+        $.from_keyword,
+        choice(
+          $.redirhost,
+          seq('{', $.redirhost_list, '}'),
+          optional(
+            seq(
+              $.to_keyword,
+              choice($.redirhost, seq('{', $.redirhost_list, '}'))
+            )
+          )
+        )
+      ),
+    rdr_to_filter_opt: $ =>
+      seq(
+        'rdr-to',
+        choice($.redirhost, seq('{', $.redirhost_list, '}')),
+        optional($.port_spec),
+        optional($.pool_type)
+      ),
+    nat_to_filter_opt: $ =>
+      seq(
+        'nat-to',
+        choice($.redirhost, seq('{', $.redirhost_list, '}')),
+        optional($.port_spec),
+        optional($.pool_type),
+        optional($.static_port_keyword),
+        optional($.route),
+        optional(seq('set tos', $.tos)),
+        optional(
+          seq(
+            optional($.not_operator),
+            'received-on',
+            $.interface_name_or_group
+          )
+        )
+      ),
+    binat_to_filter_opt: $ =>
+      seq(
+        'binat-to',
+        choice($.redirhost, seq('{', $.redirhost_list, '}')),
+        optional($.port_spec),
+        optional($.pool_type)
+      ),
+
+    scrub_opts: $ => list1($.scrub_opt),
+    scrub_opt: $ =>
+      choice(
+        $.no_df_keyword,
+        seq($.min_ttl_keyword, $.number),
+        seq($.max_mss_keyword, $.number),
+        seq($.reassemble_keyword, 'tcp'), // @TODO protocol type?
+        $.random_id_keyword
+      ),
+
+    antispoof_rule: $ =>
+      seq(
+        $.antispoof_keyword,
+        optional($.log_keyword),
+        optional($.quick_keyword),
+        $.for_keyword,
+        $.ifspec,
+        optional('af'),
+        optional(seq($.label_keyword, field('string', $.string)))
+      ),
+
+    table_rule: $ =>
+      seq(
+        $.table_keyword,
+        '<',
+        field('string', $.table_name),
+        '>',
+        optional($.table_opts)
+      ),
+    table_opts: $ => repeat1($.table_opt),
+    table_opt: $ =>
+      choice(
+        'persist',
+        'const',
+        'counters',
+        seq('file', field('string', $.string)),
+        seq('{', $.table_addrs, '}')
+      ),
+    table_addrs: $ => list1($.table_addr_spec),
+    table_addr_spec: $ =>
+      seq(
+        optional($.not_operator),
+        $.table_addr,
+        optional(seq('/', $.mask_bits))
+      ),
+    table_addr: $ =>
+      choice(
+        field('hostname', $.string), // @TODO string or raw_string?
+        $.ifspec,
+        $.self_keyword,
+        $.ipv4_dotted_quad,
+        $.ipv6_coloned_hex
+      ),
+
+    queue_rule: $ =>
+      seq(
+        $.queue_keyword,
+        field('string', $.string),
+        optional(seq($.on_keyword, $.interface_name)),
+        optional($.queue_opts_list)
+      ),
+    anchor_rule: $ =>
+      seq(
+        $.anchor_keyword,
+        optional(field('string', $.string)), // @TODO string or raw_string?
+        optional(choice($.in_keyword, $.out_keyword)),
+        optional(seq($.on_keyword, $.ifspec)),
+        optional($.af),
+        optional($.protospec),
+        // optional($.hosts), @TODO FIXME
+        optional($.filter_opts),
+        optional('{')
+      ),
+    anchor_close: $ => '}',
+    load_anchor: $ =>
+      seq(
+        'load anchor',
+        field('string', $.string), // @TODO string or raw_string?
+        $.from_keyword,
+        field('filename', $.string) // @TODO string or raw_string?
+      ),
+
+    queue_opts_list: $ => repeat1($.queue_opts), // @TODO string or raw_string?
+    queue_opts: $ =>
+      choice(
+        choice(
+          seq($.bandwidth_keyword, $.bandwidth),
+          seq('min', $.bandwidth),
+          seq('max', $.bandwidth),
+          'default'
+        ),
+        choice(
+          seq('flows', field('number', $.number)),
+          seq('quantum', field('number', $.number))
+        ),
+        seq('qlimit', field('number', $.number))
+      ),
+
+    bandwidth: $ =>
+      seq(
+        $.bandwidth_spec,
+        optional(
+          seq(
+            'burst',
+            $.bandwidth_spec,
+            $.for_keyword,
+            field('number', $.number),
+            'ms'
+          )
+        )
+      ),
+    bandwidth_spec: $ =>
+      seq(field('number', $.number), choice(blank(), 'K', 'M', 'G')),
+
+    action: $ =>
+      seq(
+        choice($.pass_keyword, $.match_keyword, $.block_keyword),
+        optional($.return)
+      ),
+    return: $ =>
+      choice(
+        $.drop_keyword,
+        $.return_keyword,
+        prec.left(
+          seq(
+            $.return_rst_keyword,
+            optional(seq('(', $.ttl_keyword, field('number', $.number), ')'))
+          )
+        ), // @TODO check if prec.left is necessary
+        prec.left(
+          seq(
+            $.return_icmp_keyword,
+            optional(
+              seq(
+                '(',
+                $.icmpcode,
+                optional(seq(optional(','), $.icmp6code)),
+                ')'
+              )
+            )
+          )
+        ), // @TODO check if prec.left is necessary
+        prec.left(
+          seq($.return_icmp6_keyword, optional(seq('(', $.icmp6code, ')')))
+        ) // @TODO check if prec.left is necessary
+      ),
+    icmpcode: $ => choice($._raw_string, $.number), // @TODO icmp code name & number regex
+    icmp6code: $ => choice($._raw_string, $.number), // @TODO icmp6 code name & number regex
+
+    ifspec: $ =>
+      choice(
+        seq(
+          /*optional($.not_operator) @TODO FIXME ,*/ $.interface_name_or_group
+        ),
+        seq('{', $.interface_list, '}')
+      ),
+    interface_list: $ =>
+      list1(optional($.not_operator), $.interface_name_or_group),
+    route: $ =>
+      seq(
+        choice($.route_to_keyword, $.reply_to_keyword, $.dup_to_keyword),
+        choice($.redirhost, $.redirhost_list)
+      ),
+    af: $ => choice($.inet_keyword, $.inet6_keyword),
+    protospec: $ =>
+      seq(
+        $.proto_keyword,
+        choice(
+          field('proto_name', $._raw_string),
+          field('proto_number', $.number),
+          seq('{', $.proto_list, '}')
+        )
+      ),
+    proto_list: $ => list1($.protospec),
+
+    hosts: $ =>
+      choice(
+        $.all_keyword,
+        seq(
+          $.from_keyword,
+          choice(
+            $.any_keyword,
+            'no-route',
+            'urpf-failed',
+            $.self_keyword,
+            $.host,
+            // $.host_list, @TODO FIXME
+            seq($.route_keyword, field('string', $.string))
+          ),
+          optional($.port),
+          optional($.os),
+          $.to_keyword,
+          choice(
+            $.any_keyword,
+            'no-route',
+            $.self_keyword,
+            $.host,
+            // $.host_list, @TODO FIXME
+            seq($.route_keyword, field('string', $.string))
+          ),
+          optional($.port)
+        )
+      ),
+
+    ipsec: $ => choice($.any_keyword, $.host, $.host_list),
+    host: $ =>
+      seq(
+        optional($.not_operator),
+        choice(
+          seq(
+            $.address,
+            optional(seq('/', $.mask_bits)),
+            optional(seq('weight', $.number))
+          ),
+          seq('<', alias($._raw_string, 'string'), '>')
+        )
+      ),
+    redirhost: $ => seq($.address, optional(seq('/', $.mask_bits))),
+    address: $ =>
+      choice(
+        $.interface_name_or_group,
+        seq('(', $.interface_name_or_group, ')'),
+        $.hostname,
+        $.ipv4_dotted_quad,
+        $.ipv6_coloned_hex
+      ),
+    host_list: $ => list1($.host),
+    redirhost_list: $ => list1($.redirhost),
+
+    port: $ => seq($.port_keyword, choice($.unary_op, $.binary_op, $.op_list)),
+    port_spec: $ =>
+      seq(
+        $.port_keyword,
+        choice(field('number', $.number), field('name', $._raw_string)),
+        optional(
+          seq(
+            ':',
+            choice('*', field('number', $.number), field('name', $._raw_string))
+          )
+        )
+      ),
+    os: $ => seq($.os_keyword, choice($.os_name, $.os_list)),
+    user: $ => seq($.user_keyword, choice($.unary_op, $.binary_op, $.op_list)),
+    group: $ =>
+      seq($.group_keyword, choice($.unary_op, $.binary_op, $.op_list)),
+
+    unary_op: $ =>
+      seq(
+        optional(choice('=', '!=', '<', '<=', '>', '>=')),
+        choice(alias($._raw_string, 'name'), $.number)
+      ),
+    binary_op: $ => seq($.number, choice('<>', '><', ':'), $.number),
+    op_list: $ => list1(choice($.unary_op, $.binary_op)),
+
+    os_name: $ => alias($._raw_string, 'operating-system-name'),
+    os_list: $ => list1($.os_name),
+
+    flags: $ =>
+      seq(
+        $.flags_keyword,
+        choice(seq(optional($.flag_set), '/', $.flag_set), $.any_keyword)
+      ),
+    flag_set: $ => repeat1(choice('F', 'S', 'R', 'P', 'A', 'U', 'E')), // @TODO move this to a scanner function. Flag MUST be only used once.
+
+    icmp_type: $ =>
+      seq($.icmp_type_keyword, choice($.icmp_type_code, $.icmp_list)),
+    icmp6_type: $ =>
+      seq($.icmp6_type_keyword, choice($.icmp_type_code, $.icmp_list)),
+    icmp_type_code: $ =>
+      seq(
+        choice($.icmp_type_name, $.icmp_type_code),
+        optional(
+          seq($.code_keyword, choice($.icmp_code_name, $.icmp_code_number))
+        )
+      ),
+    icmp_list: $ => list1($.icmp_type_code),
+
+    tos: $ =>
+      choice(
+        'lowdelay',
+        'throughput',
+        'reliability',
+        seq(optional('0x'), $.number)
+      ),
+
+    state_opts: $ => list1($.state_opt),
+    state_opt: $ =>
+      choice(
+        seq($.max_keyword, $.number),
+        $.no_sync_keyword,
+        $.timeout,
+        $.sloppy_keyword,
+        $.pflow_keyword,
+        seq(
+          $.source_track_keyword,
+          optional(choice($.rule_keyword, $.global_keyword))
+        ),
+        seq($.max_src_states_keyword, $.number),
+        seq($.max_src_nodes_keyword, $.number),
+        seq($.max_src_conn_keyword, $.number),
+        seq($.max_src_conn_rate_keyword, $.number, '/', $.number),
+        seq(
+          $.overload_keyword,
+          '<',
+          alias($._raw_string, 'string'),
+          '>',
+          optional(seq($.flush_keyword, optional($.global_keyword)))
+        ),
+        $.if_bound_keyword,
+        $.floating_keyword
+      ),
+
+    timeout_list: $ => list1($.timeout),
+    timeout: $ =>
+      seq(
+        choice(
+          'tcp.first',
+          'tcp.opening',
+          'tcp.established',
+          'tcp.closing',
+          'tcp.finwait',
+          'tcp.closed',
+          'udp.first',
+          'udp.single',
+          'udp.multiple',
+          'icmp.first',
+          'icmp.error',
+          'other.first',
+          'other.single',
+          'other.multiple',
+          'frag',
+          'interval',
+          'src.track',
+          'adaptive.start',
+          'adaptive.end'
+        ),
+        $.number
+      ),
+
+    limit_list: $ => list1($.limit_item),
+    limit_item: $ =>
+      seq(
+        choice('states', 'frags', 'src-nodes', 'tables', 'table-entries'),
+        $.number
+      ),
+
+    pool_type: $ =>
+      choice(
+        $.bitmask_keyword,
+        'least-states',
+        $.random_keyword,
+        $.round_robin_keyword,
+        seq(
+          $.source_hash_keyword,
+          optional(choice($.hex_key, $.string_key)),
+          optional($.sticky_address_keyword)
+        )
+      ),
+
+    include: $ => seq($.include_keyword, alias($.string, 'filename')),
+
+    // @TODO Move all this stuff to $.externals + scanner.c
+    hostname: $ => seq('host', $._raw_string), // @TODO FIXME + host regex?
+    interface_name: $ => $._raw_string, // #TODO interface name format?
+    interface_name_or_group: $ => $._raw_string, // @TODO interface name or group format?
+    ipv4_dotted_quad: $ => seq('ipv4', $._raw_string), // @TODO FIXME + ipv4 regex
+    ipv6_coloned_hex: $ => seq('ipv6', $._raw_string), // @TODO FIXME + ipv6 regex
+    hex_key: $ => $._raw_string, // @TODO regex
+    string_key: $ => $._raw_string, // @TODO proper regex
+    mask_bits: $ => $._raw_string, // @TODO
+    icmp_type_name: $ => $._raw_string, // @TODO
+    icmp_type_number: $ => $.number, // @TODO
+    icmp_code_name: $ => $._raw_string, // @TODO
+    icmp_code_number: $ => $.number, // @TODO
+    table_name: $ => /\w+/, // @TODO better regex
+
+    number: $ => /\d+/, // @TODO add hex support?
+    _raw_string: $ => /\w+/, // @TODO better raw string regex
+    string: $ => seq('"', /([^"]|\\.)*/, '"'), // @TODO better string regex
+
+    not_operator: $ => '!',
+
+    all_keyword: $ => 'all',
+    allow_opts_keyword: $ => 'allow-opts',
+    altq_keyword: $ => 'altq',
+    anchor_keyword: $ => 'anchor',
+    antispoof_keyword: $ => 'antispoof',
+    any_keyword: $ => 'any',
+    bandwidth_keyword: $ => 'bandwidth',
+    binat_keyword: $ => 'binat',
+    binat_anchor_keyword: $ => 'binat-anchor',
+    bitmask_keyword: $ => 'bitmask',
+    block_keyword: $ => 'block',
+    block_policy_keyword: $ => 'block-policy',
+    bridge_to_keyword: $ => 'bridge-to',
+    buckets_keyword: $ => 'buckets',
+    cbq_keyword: $ => 'cbq',
+    code_keyword: $ => 'code',
+    codelq_keyword: $ => 'codelq',
+    debug_keyword: $ => 'debug',
+    divert_reply_keyword: $ => 'divert-reply',
+    divert_to_keyword: $ => 'divert-to',
+    dnpipe_keyword: $ => 'dnpipe',
+    dnqueue_keyword: $ => 'dnqueue',
+    drop_keyword: $ => 'drop',
+    dup_to_keyword: $ => 'dup-to',
+    ether_keyword: $ => 'ether',
+    fail_policy_keyword: $ => 'fail-policy',
+    fairq_keyword: $ => 'fairq',
+    fastroute_keyword: $ => 'fastroute',
+    file_keyword: $ => 'file',
+    fingerprints_keyword: $ => 'fingerprints',
+    flags_keyword: $ => 'flags',
+    floating_keyword: $ => 'floating',
+    flush_keyword: $ => 'flush',
+    for_keyword: $ => 'for',
+    fragment_keyword: $ => 'fragment',
+    from_keyword: $ => 'from',
+    global_keyword: $ => 'global',
+    group_keyword: $ => 'group',
+    hfsc_keyword: $ => 'hfsc',
+    hogs_keyword: $ => 'hogs',
+    hostid_keyword: $ => 'hostid',
+    icmp_type_keyword: $ => 'icmp-type',
+    icmp6_type_keyword: $ => 'icmp6-type',
+    if_bound_keyword: $ => 'if-bound',
+    in_keyword: $ => 'in',
+    include_keyword: $ => 'include',
+    inet_keyword: $ => 'inet',
+    inet6_keyword: $ => 'inet6',
+    interval_keyword: $ => 'interval',
+    keep_keyword: $ => 'keep',
+    keepcounters_keyword: $ => 'keepcounters',
+    l3_keyword: $ => 'l3',
+    label_keyword: $ => 'label',
+    limit_keyword: $ => 'limit',
+    linkshare_keyword: $ => 'linkshare',
+    load_keyword: $ => 'load',
+    log_keyword: $ => 'log',
+    loginterface_keyword: $ => 'loginterface',
+    map_e_portset_keyword: $ => 'map-e-portset',
+    match_keyword: $ => 'match',
+    max_keyword: $ => 'max',
+    max_mss_keyword: $ => 'max-mss',
+    max_src_conn_keyword: $ => 'max-src-conn',
+    max_src_conn_rate_keyword: $ => 'max-src-conn-rate',
+    max_src_nodes_keyword: $ => 'max-src-nodes',
+    max_src_states_keyword: $ => 'max-src-states',
+    min_ttl_keyword: $ => 'min-ttl',
+    modulate_keyword: $ => 'modulate',
+    nat_keyword: $ => 'nat',
+    nat_anchor_keyword: $ => 'nat-anchor',
+    no_keyword: $ => 'no',
+    no_df_keyword: $ => 'no-df',
+    no_route_keyword: $ => 'no-route',
+    no_sync_keyword: $ => 'no-sync',
+    on_keyword: $ => 'on',
+    optimization_keyword: $ => 'optimization',
+    os_keyword: $ => 'os',
+    out_keyword: $ => 'out',
+    overload_keyword: $ => 'overload',
+    pass_keyword: $ => 'pass',
+    pflow_keyword: $ => 'pflow',
+    port_keyword: $ => 'port',
+    prio_keyword: $ => 'prio',
+    priority_keyword: $ => 'priority',
+    priq_keyword: $ => 'priq',
+    probability_keyword: $ => 'probability',
+    proto_keyword: $ => 'proto',
+    qlimit_keyword: $ => 'qlimit',
+    queue_keyword: $ => 'queue',
+    quick_keyword: $ => 'quick',
+    random_keyword: $ => 'random',
+    random_id_keyword: $ => 'random-id',
+    rdr_keyword: $ => 'rdr',
+    rdr_anchor_keyword: $ => 'rdr-anchor',
+    realtime_keyword: $ => 'realtime',
+    reassemble_keyword: $ => 'reassemble',
+    reply_to_keyword: $ => 'reply-to',
+    require_order_keyword: $ => 'require-order',
+    return_keyword: $ => 'return',
+    return_icmp_keyword: $ => 'return-icmp',
+    return_icmp6_keyword: $ => 'return-icmp6',
+    return_rst_keyword: $ => 'return-rst',
+    ridentifier_keyword: $ => 'ridentifier',
+    round_robin_keyword: $ => 'round-robin',
+    route_keyword: $ => 'route',
+    route_to_keyword: $ => 'route-to',
+    rtable_keyword: $ => 'rtable',
+    rule_keyword: $ => 'rule',
+    ruleset_optimization_keyword: $ => 'ruleset-optimization',
+    scrub_keyword: $ => 'scrub',
+    self_keyword: $ => 'self',
+    set_keyword: $ => 'set',
+    set_tos_keyword: $ => 'set-tos',
+    skip_keyword: $ => 'skip',
+    sloppy_keyword: $ => 'sloppy',
+    source_hash_keyword: $ => 'source-hash',
+    source_track_keyword: $ => 'source-track',
+    state_keyword: $ => 'state',
+    state_defaults_keyword: $ => 'state-defaults',
+    state_policy_keyword: $ => 'state-policy',
+    static_port_keyword: $ => 'static-port',
+    sticky_address_keyword: $ => 'sticky-address',
+    syncookies_keyword: $ => 'syncookies',
+    synproxy_keyword: $ => 'synproxy',
+    table_keyword: $ => 'table',
+    tag_keyword: $ => 'tag',
+    tagged_keyword: $ => 'tagged',
+    target_keyword: $ => 'target',
+    tbrsize_keyword: $ => 'tbrsize',
+    timeout_keyword: $ => 'timeout',
+    to_keyword: $ => 'to',
+    tos_keyword: $ => 'tos',
+    ttl_keyword: $ => 'ttl',
+    upperlimit_keyword: $ => 'upperlimit',
+    urpf_failed_keyword: $ => 'urpf-failed',
+    user_keyword: $ => 'user',
+    yes_keyword: $ => 'yes'
+  }
+});
+
+/**
+ * Creates a rule to match a list with one or more rules separated by a comma.
+ *
+ * @param  {...RuleOrLiteral} rules
+ *
+ * @returns {SeqRule}
+ */
+function list1(...rules) {
+  return seq(...rules, optional(repeat1(seq(',', ...rules))));
+}
