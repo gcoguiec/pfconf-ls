@@ -1,0 +1,66 @@
+{
+  "name": "pfconf-ls-vscodium",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Packet Filter configuration language support for VSCodium",
+  "author": "Guillaume 'Yugo' Coguiec <mail@gcoguiec.com> (https://github.com/gcoguiec/)",
+  "license": "BSD-2-Clause",
+  "keywords": [
+    "Packet Filter",
+    "pf",
+    "pf.conf"
+  ],
+  "categories": [
+    "Formatters",
+    "Programming Languages"
+  ],
+  "enabledApiProposals": [],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false
+    }
+  },
+  "activationEvents": [
+    "workspaceContains:pf.conf",
+    "workspaceContains:*/pf.conf"
+  ],
+  "main": "./client.js",
+  "scripts": {
+    "build": "tsc -b",
+    "fmt": "prettier --write '**/*.{js,cjs,mjs,ts,cts,mts,json,md}'",
+    "fmt:check": "prettier --check '**/*.{js,cjs,mjs,ts,cts,mts,json,md}'",
+    "spellcheck": "cspell --config=.cspell.json '**/*.{md,js,cjs,mjs,ts,cts,mts}'",
+    "lint": "DEBUG=eslint:cli-engine pnpm eslint . --ext .js,.cjs,.mjs,.ts,.cts,.mts --ignore-path .gitignore",
+    "lint:fix": "pnpm lint --fix",
+    "lint:conflicts": "npx eslint-config-prettier .eslintrc.cjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@gcoguiec/eslint-config-typescript": "^1.0.8",
+    "@types/vscode": "^1.88.0",
+    "@typescript-eslint/eslint-plugin": "^7.7.0",
+    "@typescript-eslint/parser": "^7.7.0",
+    "@vscode/test-electron": "^2.3.9",
+    "cspell": "^8.7.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-perfectionist": "^2.9.0",
+    "eslint-plugin-promise": "^6.1.1",
+    "prettier": "^3.2.5",
+    "typescript": "^5.4.5"
+  },
+  "engines": {
+    "vscodium": "^1.88.1"
+  },
+  "devEngines": {
+    "node": ">=18"
+  },
+  "volta": {
+    "node": "18.18.2",
+    "pnpm": "8.15.4"
+  },
+  "packageManager": "pnpm@8.15.4"
+}

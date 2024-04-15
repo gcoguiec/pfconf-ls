@@ -1,0 +1,26 @@
+{
+  "root": true,
+  "plugins": ["perfectionist"],
+  "extends": ["@gcoguiec/eslint-config-typescript", "prettier"],
+  "rules": {
+    "perfectionist/sort-imports": [
+      "error",
+      {
+        "type": "natural",
+        "order": "desc",
+        "groups": [
+          ["type", "internal-type"],
+          ["builtin", "external"],
+          "internal",
+          ["parent-type", "sibling-type", "index-type"],
+          ["parent", "sibling", "index"],
+          "side-effect",
+          "style",
+          "object",
+          "unknown"
+        ],
+        "newlines-between": "always"
+      }
+    ]
+  }
+}
