@@ -15,6 +15,7 @@ import {
 } from './container/container.interface';
 import { RestartServerAction } from './action/restart-server.action';
 import { ActionsService } from './action/actions.service';
+import { getConfiguration } from './config/config.helper';
 
 let client: LanguageClient;
 
@@ -23,12 +24,20 @@ export function activate(extensionContext: ExtensionContext): Thenable<void> {
     'Packet Filter Configuration Language Server'
   );
 
+  const serverPath = getConfiguration<string>('server.path');
+
+  if (!serverPath) {
+    // @TODO binary bundling, better message handling, etc...
+    window.showErrorMessage('Server path must be configured.');
+    return Promise.reject();
+  }
+
   const serverOptions: ServerOptions = {
     run: {
-      command: '/Users/yugo/projects/pfconf-ls/target/debug/pfconf-ls' // @TODO move this to workspace settings
+      command: serverPath
     },
     debug: {
-      command: '/Users/yugo/projects/pfconf-ls/target/debug/pfconf-ls' // @TODO move this to workspace settings
+      command: serverPath
     }
   };
 

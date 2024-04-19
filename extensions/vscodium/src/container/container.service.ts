@@ -34,11 +34,11 @@ export class ContainerService {
   }
 
   public static dispose(): void {
-    this._registry.forEach(value => {
-      if (!isServiceDisposable(value)) {
+    this._registry.forEach(service => {
+      if (!isServiceDisposable(service)) {
         return;
       }
-      value.dispose();
+      service.dispose();
     });
     this._registry.clear();
   }
