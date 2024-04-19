@@ -106,7 +106,7 @@
     "lint": "DEBUG=eslint:cli-engine pnpm eslint . --ext .js,.cjs,.mjs,.ts,.cts,.mts --ignore-path .gitignore",
     "lint:fix": "pnpm lint --fix",
     "lint:conflicts": "npx eslint-config-prettier .eslintrc.cjs",
-    "package": "vsce package --out dist/pfconfls.vsix",
+    "package": "vsce package --out dist/pfconf-ls.vsix",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

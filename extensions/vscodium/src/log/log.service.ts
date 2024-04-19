@@ -106,9 +106,7 @@ export class LogService implements Disposable {
   }
 
   public flush() {
-    this._outputChannel.hide();
     this._outputChannel.clear();
-    this._outputChannel.show();
   }
 
   public dispose(): void {

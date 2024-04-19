@@ -16,6 +16,7 @@ import {
 import { RestartServerAction } from './action/restart-server.action';
 import { ActionsService } from './action/actions.service';
 import { getConfiguration } from './config/config.helper';
+import { OpenLogsAction } from './action/open-logs.action';
 
 let client: LanguageClient;
 
@@ -34,10 +35,21 @@ export function activate(extensionContext: ExtensionContext): Thenable<void> {
 
   const serverOptions: ServerOptions = {
     run: {
-      command: serverPath
+      command: serverPath,
+      options: {
+        env: {
+          PFCONFLS_LOG: 'info'
+        }
+      }
     },
     debug: {
-      command: serverPath
+      command: serverPath,
+      options: {
+        env: {
+          PFCONFLS_LOG: 'trace',
+          PFCONFLS_LOG_VERBOSE_THREAD: 1
+        }
+      }
     }
   };
 
@@ -65,13 +77,16 @@ export function activate(extensionContext: ExtensionContext): Thenable<void> {
   log.formatter = new LineFormatter();
   ContainerService.register(LogService, log);
 
+  // @TODO more status bar love.
   const statusBar = new StatusBarService();
   statusBar.render();
 
   ContainerService.register(StatusBarService, statusBar);
   ContainerService.register(
     ActionsService,
-    new ActionsService().add(new RestartServerAction())
+    new ActionsService()
+      .add(new RestartServerAction())
+      .add(new OpenLogsAction())
   );
 
   return client.start();
