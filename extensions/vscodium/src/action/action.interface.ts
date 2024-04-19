@@ -1,4 +1,4 @@
 export interface Action {
   name: string;
-  execute(...args: unknown[]): void;
+  execute(...args: unknown[]): Promise<void> | void;
 }

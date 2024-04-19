@@ -6,7 +6,10 @@ import type { LogFormatter, LogRecord } from './log.interface';
 
 import { ContainerService } from '../container/container.service';
 import { OutputChannelService } from '../container/container.interface';
-import { affectsConfiguration, getConfiguration } from '../config/config.util';
+import {
+  affectsConfiguration,
+  getConfiguration
+} from '../config/config.helper';
 
 export class LogService implements Disposable {
   protected _level = LogLevel.Info;
@@ -100,6 +103,12 @@ export class LogService implements Disposable {
       message,
       context
     });
+  }
+
+  public flush() {
+    this._outputChannel.hide();
+    this._outputChannel.clear();
+    this._outputChannel.show();
   }
 
   public dispose(): void {

@@ -18,9 +18,10 @@ export class ActionsService {
     }
     this._actions[action.name] = action;
     this.extensionContext.subscriptions.push(
-      commands.registerCommand(action.name, () => {
-        action.execute();
-      })
+      commands.registerCommand(
+        action.name,
+        action.execute.bind({ name: action.name })
+      )
     );
     return this;
   }
