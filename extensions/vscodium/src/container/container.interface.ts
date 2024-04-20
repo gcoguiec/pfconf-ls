@@ -1,4 +1,4 @@
-import type { ExtensionContext, OutputChannel } from 'vscode';
+import type { ExtensionContext } from 'vscode';
 
 export type ServiceToken<T = unknown> =
   | {
@@ -10,6 +10,3 @@ export type ServiceToken<T = unknown> =
 
 export const ExtensionContextService: ServiceToken<ExtensionContext> =
   Symbol('extension-context');
-
-export const OutputChannelService: ServiceToken<OutputChannel> =
-  Symbol('output-channel');

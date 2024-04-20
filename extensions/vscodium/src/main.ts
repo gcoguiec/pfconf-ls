@@ -1,18 +1,18 @@
 import type { ServerOptions } from 'vscode-languageclient/node';
 import type { LanguageClientOptions } from 'vscode-languageclient';
-import type { ExtensionContext, OutputChannel } from 'vscode';
+import type { ExtensionContext } from 'vscode';
 
-import { LanguageClient } from 'vscode-languageclient/node';
+import {
+  LanguageClient,
+  RevealOutputChannelOn
+} from 'vscode-languageclient/node';
 import { window, workspace } from 'vscode';
 
 import { StatusBarService } from './status-bar/status-bar.service';
 import { LogService } from './log/log.service';
 import { LineFormatter } from './log/line.formatter';
 import { ContainerService } from './container/container.service';
-import {
-  ExtensionContextService,
-  OutputChannelService
-} from './container/container.interface';
+import { ExtensionContextService } from './container/container.interface';
 import { RestartServerAction } from './action/restart-server.action';
 import { ActionsService } from './action/actions.service';
 import { getConfiguration } from './config/config.helper';
@@ -21,17 +21,19 @@ import { OpenLogsAction } from './action/open-logs.action';
 let client: LanguageClient;
 
 export function activate(extensionContext: ExtensionContext): Thenable<void> {
-  const outputChannel: OutputChannel = window.createOutputChannel(
-    'Packet Filter Configuration Language Server'
-  );
+  ContainerService.register(ExtensionContextService, extensionContext);
 
+  const debug = !!getConfiguration<boolean>('trace.extension');
   const serverPath = getConfiguration<string>('server.path');
-
   if (!serverPath) {
     // @TODO binary bundling, better message handling, etc...
     window.showErrorMessage('Server path must be configured.');
     return Promise.reject();
   }
+
+  const formatter = new LineFormatter();
+  const log = new LogService(formatter);
+  ContainerService.register(LogService, log);
 
   const serverOptions: ServerOptions = {
     run: {
@@ -47,7 +49,7 @@ export function activate(extensionContext: ExtensionContext): Thenable<void> {
       options: {
         env: {
           PFCONFLS_LOG: 'trace',
-          PFCONFLS_LOG_VERBOSE_THREAD: 1
+          PFCONFLS_LOG_VERBOSE_THREAD: '1'
         }
       }
     }
@@ -59,23 +61,26 @@ export function activate(extensionContext: ExtensionContext): Thenable<void> {
     synchronize: {
       fileEvents: workspace.createFileSystemWatcher('**/pf.conf')
     },
-    outputChannel
+    outputChannel: log.outputChannel,
+    revealOutputChannelOn: RevealOutputChannelOn.Never,
+    initializationFailedHandler(error): boolean {
+      const context = [error.message, error.stack];
+      log.error('Initialization failed.', context);
+      if (debug) {
+        log.outputChannel.show();
+      }
+      return false;
+    }
   };
 
   client = new LanguageClient(
     'pfconf-ls',
     'Packet Filter Configuration Language Server',
     serverOptions,
-    clientOptions
+    clientOptions,
+    debug
   );
-
-  ContainerService.register(ExtensionContextService, extensionContext);
   ContainerService.register(LanguageClient, client);
-  ContainerService.register(OutputChannelService, outputChannel);
-
-  const log = new LogService();
-  log.formatter = new LineFormatter();
-  ContainerService.register(LogService, log);
 
   // @TODO more status bar love.
   const statusBar = new StatusBarService();

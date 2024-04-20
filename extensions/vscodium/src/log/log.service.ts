@@ -1,34 +1,34 @@
-import type { ConfigurationChangeEvent, Disposable } from 'vscode';
+import type { ConfigurationChangeEvent } from 'vscode';
 
-import { LogLevel, env, workspace } from 'vscode';
+import { LogLevel, env, window, workspace } from 'vscode';
 
 import type { LogFormatter, LogRecord } from './log.interface';
 
-import { ContainerService } from '../container/container.service';
-import { OutputChannelService } from '../container/container.interface';
 import {
   affectsConfiguration,
   getConfiguration
 } from '../config/config.helper';
+import { ContainerService } from '../container/container.service';
+import { ExtensionContextService } from '../container/container.interface';
 
-export class LogService implements Disposable {
-  protected _level = LogLevel.Info;
+export class LogService {
+  protected _level = getConfiguration('trace.extension')
+    ? LogLevel.Trace
+    : LogLevel.Info;
 
-  protected _disposables: Disposable[] = [];
+  protected readonly extensionContext = ContainerService.inject(
+    ExtensionContextService
+  );
 
-  protected readonly _outputChannel =
-    ContainerService.inject(OutputChannelService);
+  public readonly outputChannel = window.createOutputChannel(
+    'Packet Filter Configuration Language Server'
+  );
 
-  public formatter?: LogFormatter;
-
-  public constructor() {
-    this.setLevel(
-      getConfiguration('trace.extension') ? LogLevel.Trace : env.logLevel
-    );
-    this._disposables.push(
+  public constructor(public readonly formatter: LogFormatter) {
+    this.extensionContext.subscriptions.push(
       env.onDidChangeLogLevel(this.handleLogLevelChange.bind(this))
     );
-    this._disposables.push(
+    this.extensionContext.subscriptions.push(
       workspace.onDidChangeConfiguration(
         this.handleConfigurationChange.bind(this)
       )
@@ -39,10 +39,7 @@ export class LogService implements Disposable {
     if (this._level === LogLevel.Off || this._level > record.level) {
       return;
     }
-    if (!this.formatter) {
-      throw new Error('A formatter was not set for the Log service.');
-    }
-    this._outputChannel.appendLine(this.formatter.format(record));
+    this.outputChannel.appendLine(this.formatter.format(record));
   }
 
   protected handleLogLevelChange(level: LogLevel) {
@@ -106,12 +103,6 @@ export class LogService implements Disposable {
   }
 
   public flush() {
-    this._outputChannel.clear();
-  }
-
-  public dispose(): void {
-    this._disposables.forEach(disposable => {
-      disposable.dispose();
-    });
+    this.outputChannel.clear();
   }
 }
