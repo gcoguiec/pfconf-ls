@@ -1,6 +1,6 @@
 use std::process::ExitCode;
 
-use lsp_server::Connection;
+use lsp_server::{Connection, Message};
 use miette::{miette, IntoDiagnostic, Result};
 
 use pfconf_ls::{
@@ -33,11 +33,11 @@ fn main() -> Result<ExitCode> {
         );
         return Ok(ExitCode::SUCCESS);
     }
-    let _ = spawn_latency_sensitive_worker();
+    let _ = spawn_lsp_server_thread();
     Ok(ExitCode::SUCCESS)
 }
 
-fn spawn_latency_sensitive_worker() -> Result<()> {
+fn spawn_lsp_server_thread() -> Result<()> {
     let handle = thread::Builder::new(ThreadRole::LatencySensitiveWorker)
         .name("LSPServer".into())
         .spawn(run_lsp_server)
@@ -58,7 +58,34 @@ fn run_lsp_server() -> Result<()> {
             return Err(miette!("Protocol error: {}", e))
         }
     };
-
     tracing::info!("InitializeParams: {}", initialize_params);
+
+    handle_lsp_server_loop(connection, initialize_params)?;
+    io_threads.join().into_diagnostic()?;
+
+    tracing::info!("Shutting down pfconf-ls server.");
+    Ok(())
+}
+
+fn handle_lsp_server_loop(
+    connection: Connection,
+    params: serde_json::Value
+) -> Result<()> {
+    for message in &connection.receiver {
+        match message {
+            Message::Request(request) => {
+                if connection.handle_shutdown(&request).into_diagnostic()? {
+                    return Ok(());
+                }
+                tracing::info!("Request: {request:?}");
+            }
+            Message::Response(response) => {
+                tracing::info!("Response: {response:?}");
+            }
+            Message::Notification(notification) => {
+                tracing::info!("Notification: {notification:?}");
+            }
+        }
+    }
     Ok(())
 }

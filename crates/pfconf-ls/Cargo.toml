@@ -15,12 +15,14 @@ libc = "0.2.153"
 lsp-server = "0.7.6"
 lsp-types = "0.95.1"
 miette = { version = "7.2.0", features = ["fancy"] }
+serde_json = { workspace = true }
 thiserror = "1.0.58"
 tracing = "0.1.40"
 tracing-log = "0.2.0"
 tracing-subscriber = { version = "0.3.18", default-features = false, features = ["fmt", "env-filter", "ansi"] }
-xflags = "0.3.2"
 pfconf-tree-sitter = { path = "../pfconf-tree-sitter" }
+xflags = "0.3.2"
+
 
 [target.'cfg(target_os = "windows")'.dependencies.windows-sys]
 version = "0.52.0"
