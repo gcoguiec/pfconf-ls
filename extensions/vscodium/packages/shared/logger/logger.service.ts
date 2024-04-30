@@ -29,13 +29,24 @@ export class LoggerService {
     );
   }
 
+  /**
+   * Changes the local level when the output channel level is changed.
+   *
+   * @param level The new log level selected by the end-user.
+   */
   protected handleLogLevelChange(level: LogLevel) {
-    if (this._config.get<boolean>('trace.extension')) {
-      return;
-    }
-    this.setLevel(level);
+    this.setLevel(
+      this._config.get<boolean>('trace.extension') ? LogLevel.Trace : level
+    );
   }
 
+  /**
+   * Appends a new log record to output channel.
+   * Set the log level to `LogLevel.Off` if you want to disable any output
+   * channel updates.
+   *
+   * @param record The log record to be added.
+   */
   public addRecord(record: LogRecord): void {
     if (this._level === LogLevel.Off || this._level > record.level) {
       return;
@@ -63,6 +74,11 @@ export class LoggerService {
     }
   }
 
+  /**
+   * Simply sets log level on logger.
+   *
+   * @param level The desired log level.
+   */
   public setLevel(level: LogLevel) {
     this._level = level;
   }

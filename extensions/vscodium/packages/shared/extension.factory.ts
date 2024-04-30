@@ -2,8 +2,6 @@ import type { ExtensionContext } from 'vscode';
 
 import { window } from 'vscode';
 
-import type { ExtensionFactoryOptions, ExtensionOptions } from '.';
-
 import { LineFormatter, LoggerService } from './logger';
 import { ExtensionError } from './extension.error';
 import { Extension } from './extension';
@@ -14,6 +12,11 @@ import {
   LogOutputChannelService
 } from './container';
 import { ConfigService } from './config';
+import {
+  CommandsService,
+  type ExtensionFactoryOptions,
+  type ExtensionOptions
+} from '.';
 
 export const defaultOptions: ExtensionFactoryOptions = {
   extensionName: 'pfconf-ls',
@@ -78,6 +81,7 @@ export class ExtensionFactory {
     this.registerExtensionContextService(options.context);
     this.registerLogOutputChannelService(options.logOutputChannel);
     this.registerLoggerService(options.logger);
+    this.registerCommandsService();
   }
 
   /**
@@ -130,5 +134,12 @@ export class ExtensionFactory {
     options: ExtensionOptions['logger']
   ): void {
     Extension.registerService(LoggerService, new LoggerService(options));
+  }
+
+  /**
+   * Registers command service with service container.
+   */
+  public static registerCommandsService(): void {
+    Extension.registerService(CommandsService, new CommandsService());
   }
 }

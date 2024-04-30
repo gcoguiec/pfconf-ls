@@ -1,7 +1,12 @@
 import type { ExtensionContext } from 'vscode';
-import type { Extension } from '@pfconf-ls/shared';
 
-import { ExtensionFactory } from '@pfconf-ls/shared';
+import {
+  CommandsService,
+  Extension,
+  ExtensionFactory
+} from '@pfconf-ls/shared';
+
+import { OpenLogsCommand } from './commands/open-logs.command';
 
 export let extension: Extension;
 
@@ -9,6 +14,10 @@ export function activate(
   context: ExtensionContext
 ): Thenable<void> | undefined {
   extension = ExtensionFactory.create({ context });
+
+  // Registers extension editor commands.
+  const commands = Extension.injectService(CommandsService);
+  commands.add(new OpenLogsCommand());
 
   return extension.activate();
 }

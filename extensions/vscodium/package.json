@@ -47,8 +47,13 @@
     ],
     "commands": [
       {
-        "command": "pfconf-ls.action.restartServer",
+        "command": "pfconf-ls.command.restartServer",
         "title": "Restart server",
+        "category": "pfconf-ls"
+      },
+      {
+        "command": "pfconf-ls.command.openLogs",
+        "title": "Open logs",
         "category": "pfconf-ls"
       }
     ],

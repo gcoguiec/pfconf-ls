@@ -57,5 +57,6 @@ export * from './config';
 export * from './logger';
 export * from './extension';
 export * from './container';
+export * from './command';
 export { ExtensionError } from './extension.error';
 export { ExtensionFactory } from './extension.factory';
