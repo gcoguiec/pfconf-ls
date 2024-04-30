@@ -29,7 +29,7 @@
     "/TS[^\\s]+/",
     "\\(#.+?\\)"
   ],
-  "words": ["eslint"],
+  "words": ["eslint", "outdir"],
   "overrides": [
     {
       "filename": "**/*.{ts,js}",

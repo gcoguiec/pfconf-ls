@@ -1,0 +1,10 @@
+{
+  "name": "@pfconf-ls/shared",
+  "version": "1.0.0",
+  "description": "Shared and reusable extension components.",
+  "author": {
+    "name": "Guillaume 'Yugo' Coguiec",
+    "email": "mail@gcoguiec.com",
+    "url": "https://github.com/gcoguiec/"
+  }
+}

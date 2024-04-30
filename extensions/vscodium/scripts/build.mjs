@@ -12,7 +12,7 @@ context({
   platform: 'node',
   tsconfig: './tsconfig.json'
 }).then(async ctx => {
-  console.log('building...');
+  console.log('building client...');
   await ctx.rebuild();
   await ctx.dispose();
   console.log('finished');

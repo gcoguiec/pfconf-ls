@@ -52,6 +52,11 @@
         "category": "pfconf-ls"
       }
     ],
+    "configurationDefaults": {
+      "[pfconf-ls]": {
+        "editor.semanticHighlighting.enabled": true
+      }
+    },
     "configuration": {
       "type": "object",
       "title": "pfconf-ls",
@@ -97,7 +102,7 @@
     "yarn": false,
     "dependencies": false
   },
-  "main": "./client.js",
+  "browser": "./dist/client.js",
   "scripts": {
     "build": "tsc -b && node scripts/build.mjs",
     "fmt": "prettier --write '**/*.{js,cjs,mjs,ts,cts,mts,json,md}'",
@@ -109,10 +114,9 @@
     "package": "vsce package --out dist/pfconf-ls.vsix",
     "typecheck": "tsc --noEmit"
   },
-  "dependencies": {
-    "vscode-languageclient": "^9.0.1"
-  },
   "devDependencies": {
+    "vscode-languageserver-protocol": "^3.17.5",
+    "@pfconf-ls/shared": "workspace:*",
     "@gcoguiec/eslint-config-typescript": "^1.0.8",
     "@types/vscode": "^1.88.0",
     "@typescript-eslint/eslint-plugin": "^7.7.0",
@@ -137,7 +141,7 @@
   },
   "volta": {
     "node": "18.18.2",
-    "pnpm": "8.15.4"
+    "pnpm": "9.0.5"
   },
-  "packageManager": "pnpm@8.15.4"
+  "packageManager": "pnpm@9.0.5"
 }
