@@ -1,0 +1,3 @@
+struct Dispatcher {}
+
+impl Dispatcher {}
