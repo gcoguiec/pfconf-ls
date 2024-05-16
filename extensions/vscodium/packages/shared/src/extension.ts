@@ -4,7 +4,7 @@ import type { Container, ServiceToken } from './container/index.js';
 import { ExtensionError } from './extension.error.js';
 
 export class Extension implements ExtensionInterface {
-  protected static container: Container | undefined;
+  protected static _container: Container | undefined;
 
   public constructor(public readonly options: ExtensionOptions) {}
 
@@ -29,22 +29,22 @@ export class Extension implements ExtensionInterface {
    * @param container The container to be registered.
    */
   public static setContainer(container: Container): void {
-    this.container = container;
+    this._container = container;
   }
 
   /**
    * Checks if the container is still instantiated or not.
    */
   public static hasContainer(): boolean {
-    return !!this.container;
+    return !!this._container;
   }
 
   /**
    * Incinerates container and its disposable services.
    */
   public static incinerateContainer(): void {
-    Extension.container?.dispose();
-    Extension.container = undefined;
+    Extension._container?.dispose();
+    Extension._container = undefined;
   }
 
   /**
@@ -55,7 +55,7 @@ export class Extension implements ExtensionInterface {
    * @param instance The service instance that will be registered with its associated token.
    */
   public static registerService<T>(token: ServiceToken<T>, instance: T): void {
-    this.container?.register(token, instance);
+    this._container?.register(token, instance);
   }
 
   /**
@@ -65,11 +65,11 @@ export class Extension implements ExtensionInterface {
    * @returns The service instance stored inside container registry.
    */
   public static injectService<T>(token: ServiceToken<T>): Readonly<T> {
-    if (!this.container) {
+    if (!this._container) {
       throw new ExtensionError(
         'Cannot inject a service from an uninitialized container.'
       );
     }
-    return this.container.inject(token);
+    return this._container.inject(token);
   }
 }
