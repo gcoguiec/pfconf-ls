@@ -1,8 +1,8 @@
 import type { Disposable } from 'vscode';
 
-import type { ServiceToken } from '.';
+import type { ServiceToken } from './index.js';
 
-import { ContainerError, isServiceDisposable } from '.';
+import { ContainerError, isServiceDisposable, tokenToStr } from './index.js';
 
 /**
  * A dependency injection container.
@@ -74,7 +74,7 @@ export class Container implements Disposable {
   public register<T>(token: ServiceToken<T>, instance: T): void {
     if (this.has(token)) {
       throw new ContainerError(
-        `A service instance for '${String(token)}' is already registered.`
+        `A service instance for '${tokenToStr(token)}' is already registered.`
       );
     }
     this._registry.set(token, instance);
@@ -89,7 +89,7 @@ export class Container implements Disposable {
   public inject<T>(token: ServiceToken<T>): Readonly<T> {
     if (!this.has(token)) {
       throw new ContainerError(
-        `Could not inject service '${String(token)}'. Did you register it?`
+        `Could not inject service '${tokenToStr(token)}'. Did you register it?`
       );
     }
 
@@ -106,6 +106,9 @@ export class Container implements Disposable {
      * framework manually.
      */
     this._registry.forEach(service => {
+      if (typeof service !== 'object' && typeof service !== 'function') {
+        return;
+      }
       if (!isServiceDisposable(service)) {
         return;
       }

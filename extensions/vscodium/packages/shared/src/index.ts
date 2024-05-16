@@ -1,6 +1,6 @@
 import type { ExtensionContext } from 'vscode';
 
-import type { LoggerServiceOptions } from './logger';
+import type { LoggerServiceOptions } from './logger/index.js';
 
 /**
  * Holds options for an Extension instance.
@@ -53,10 +53,10 @@ export interface ExtensionInterface {
   deactivate(): Promise<void>;
 }
 
-export * from './config';
-export * from './logger';
-export * from './extension';
-export * from './container';
-export * from './command';
-export { ExtensionError } from './extension.error';
-export { ExtensionFactory } from './extension.factory';
+export * from './config/index.js';
+export * from './logger/index.js';
+export * from './extension.js';
+export * from './container/index.js';
+export * from './command/index.js';
+export { ExtensionError } from './extension.error.js';
+export { ExtensionFactory } from './extension.factory.js';

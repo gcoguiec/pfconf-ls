@@ -1,10 +1,10 @@
 import { commands } from 'vscode';
 
-import type { Command } from '.';
+import type { Command } from './index.js';
 
-import { ExtensionError } from '../extension.error';
-import { Extension } from '../extension';
-import { ExtensionContextService } from '../container';
+import { Extension } from '../extension.js';
+import { ExtensionError } from '../extension.error.js';
+import { ExtensionContextService } from '../container/index.js';
 
 export class CommandsService {
   protected _commands: Record<string, Command> = {};
@@ -24,10 +24,15 @@ export class CommandsService {
         `Command '${command.name}' is already registered.`
       );
     }
+    this._commands[command.name] = command;
     this._context.subscriptions.push(
-      // Method's `this` context is bound by the third argument.
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      commands.registerCommand(command.name, command.execute, command)
+      commands.registerCommand(
+        command.name,
+        async () => {
+          await command.execute();
+        },
+        command
+      )
     );
   }
 }

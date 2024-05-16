@@ -9,6 +9,7 @@
   "publisher": "gcoguiec",
   "displayName": "pfconf-ls",
   "private": true,
+  "type": "module",
   "description": "pfconf-ls support for VSCodium",
   "author": {
     "name": "Guillaume 'Yugo' Coguiec",
@@ -113,30 +114,35 @@
     "fmt": "prettier --write '**/*.{js,cjs,mjs,ts,cts,mts,json,md}'",
     "fmt:check": "prettier --check '**/*.{js,cjs,mjs,ts,cts,mts,json,md}'",
     "spellcheck": "cspell --config=.cspell.json '**/*.{md,js,cjs,mjs,ts,cts,mts}'",
-    "lint": "DEBUG=eslint:cli-engine pnpm eslint . --ext .js,.cjs,.mjs,.ts,.cts,.mts --ignore-path .gitignore",
+    "lint": "eslint .",
     "lint:fix": "pnpm lint --fix",
-    "lint:conflicts": "npx eslint-config-prettier .eslintrc.cjs",
+    "lint:conflicts": "ESLINT_USE_FLAT_CONFIG=true npx eslint-config-prettier",
     "package": "vsce package --out dist/pfconf-ls.vsix",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "vscode-languageserver-protocol": "^3.17.5",
+    "@gcoguiec/eslint-config": "^1.1.2",
     "@pfconf-ls/shared": "workspace:*",
-    "@gcoguiec/eslint-config-typescript": "^1.0.8",
-    "@types/vscode": "^1.88.0",
-    "@typescript-eslint/eslint-plugin": "^7.7.0",
-    "@typescript-eslint/parser": "^7.7.0",
+    "@types/vscode": "^1.89.0",
+    "@typescript-eslint/eslint-plugin": "^7.9.0",
+    "@typescript-eslint/parser": "^7.9.0",
+    "@vitest/coverage-v8": "^1.6.0",
     "@vscode/test-electron": "^2.3.9",
-    "@vscode/vsce": "^2.25.0",
-    "cspell": "^8.7.0",
-    "esbuild": "^0.20.2",
+    "@vscode/vsce": "^2.26.1",
+    "cspell": "^8.8.1",
+    "esbuild": "^0.21.2",
     "esbuild-visualizer": "^0.6.0",
+    "eslint": "^9.2.0",
     "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-perfectionist": "^2.9.0",
-    "eslint-plugin-promise": "^6.1.1",
+    "eslint-plugin-import-x": "^0.5.0",
+    "eslint-plugin-perfectionist": "^2.10.0",
+    "eslint-plugin-vitest": "^0.5.4",
     "prettier": "^3.2.5",
-    "typescript": "^5.4.5"
+    "tslib": "^2.6.2",
+    "typescript": "^5.4.5",
+    "vitest": "^1.6.0",
+    "vitest-double": "^1.0.0",
+    "vscode-languageserver-protocol": "^3.17.5"
   },
   "engines": {
     "vscode": "^1.88.1"
@@ -146,7 +152,7 @@
   },
   "volta": {
     "node": "18.18.2",
-    "pnpm": "9.0.5"
+    "pnpm": "9.1.0"
   },
-  "packageManager": "pnpm@9.0.5"
+  "packageManager": "pnpm@9.1.0"
 }

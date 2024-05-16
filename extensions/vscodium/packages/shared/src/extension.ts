@@ -1,7 +1,7 @@
-import type { Container, ServiceToken } from './container';
-import type { ExtensionInterface, ExtensionOptions } from '.';
+import type { ExtensionInterface, ExtensionOptions } from './index.js';
+import type { Container, ServiceToken } from './container/index.js';
 
-import { ExtensionError } from './extension.error';
+import { ExtensionError } from './extension.error.js';
 
 export class Extension implements ExtensionInterface {
   protected static container: Container | undefined;

@@ -1,10 +1,13 @@
 import { LogLevel } from 'vscode';
 
-import type { LogRecord, LoggerServiceOptions } from '.';
+import type { LogRecord, LoggerServiceOptions } from './index.js';
 
-import { Extension } from '../extension';
-import { ExtensionContextService, LogOutputChannelService } from '../container';
-import { ConfigService } from '../config';
+import { Extension } from '../extension.js';
+import {
+  ExtensionContextService,
+  LogOutputChannelService
+} from '../container/index.js';
+import { ConfigService } from '../config/index.js';
 
 export class LoggerService {
   protected _level!: LogLevel;
@@ -17,7 +20,7 @@ export class LoggerService {
 
   protected readonly _config = Extension.injectService(ConfigService);
 
-  public constructor(protected readonly options: LoggerServiceOptions) {
+  public constructor(protected readonly _options: LoggerServiceOptions) {
     this._output.clear(); // Doesn't seem to do anything? (vscodium@1.88.1)
 
     this._level = this._config.get<boolean>('trace.extension')
@@ -53,29 +56,29 @@ export class LoggerService {
     }
     switch (record.level) {
       case LogLevel.Debug: {
-        this._output.debug(...this.options.formatter.format(record));
+        this._output.debug(...this._options.formatter.format(record));
         return;
       }
       case LogLevel.Error: {
-        this._output.error(...this.options.formatter.format(record));
+        this._output.error(...this._options.formatter.format(record));
         return;
       }
       case LogLevel.Warning: {
-        this._output.warn(...this.options.formatter.format(record));
+        this._output.warn(...this._options.formatter.format(record));
         return;
       }
       case LogLevel.Trace: {
-        this._output.trace(...this.options.formatter.format(record));
+        this._output.trace(...this._options.formatter.format(record));
         return;
       }
       default: {
-        this._output.info(...this.options.formatter.format(record));
+        this._output.info(...this._options.formatter.format(record));
       }
     }
   }
 
   /**
-   * Simply sets log level on logger.
+   * Simply changes log level on the logger.
    *
    * @param level The desired log level.
    */

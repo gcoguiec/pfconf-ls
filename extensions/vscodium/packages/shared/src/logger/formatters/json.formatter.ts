@@ -1,4 +1,4 @@
-import type { LogFormatter, LogFormatterOutput, LogRecord } from '..';
+import type { LogFormatter, LogFormatterOutput, LogRecord } from '../index.js';
 
 /**
  * Formats a log record as a JSON string representation.

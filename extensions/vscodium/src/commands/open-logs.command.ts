@@ -1,10 +1,10 @@
-import type { Command } from '@pfconf-ls/shared';
+import type { Command } from '@pfconf-ls/shared/src';
 
 import {
   Extension,
   ExtensionNameService,
   LogOutputChannelService
-} from '@pfconf-ls/shared';
+} from '@pfconf-ls/shared/src';
 
 /**
  * A command that displays and focuses on the extension principal log output

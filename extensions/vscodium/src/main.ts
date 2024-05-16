@@ -4,15 +4,13 @@ import {
   CommandsService,
   Extension,
   ExtensionFactory
-} from '@pfconf-ls/shared';
+} from '@pfconf-ls/shared/src';
 
-import { OpenLogsCommand } from './commands/open-logs.command';
+import { OpenLogsCommand } from './commands/open-logs.command.js';
 
-export let extension: Extension;
+let extension: Extension;
 
-export function activate(
-  context: ExtensionContext
-): Thenable<void> | undefined {
+export function activate(context: ExtensionContext): Promise<void> | undefined {
   extension = ExtensionFactory.create({ context });
 
   // Registers extension editor commands.
@@ -22,6 +20,6 @@ export function activate(
   return extension.activate();
 }
 
-export function deactivate(): Thenable<void> | undefined {
+export function deactivate(): Promise<void> | undefined {
   return extension.deactivate();
 }

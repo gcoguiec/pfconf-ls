@@ -15,4 +15,4 @@ export interface Command {
   execute(...args: unknown[]): Promise<void> | void;
 }
 
-export { CommandsService } from './commands.service';
+export { CommandsService } from './commands.service.js';

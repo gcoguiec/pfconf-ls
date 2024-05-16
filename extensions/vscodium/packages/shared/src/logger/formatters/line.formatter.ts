@@ -1,4 +1,4 @@
-import type { LogFormatter, LogFormatterOutput, LogRecord } from '..';
+import type { LogFormatter, LogFormatterOutput, LogRecord } from '../index.js';
 
 /**
  * Formats log record as a string line in its most classic form.

@@ -101,6 +101,6 @@ export interface LoggerServiceOptions {
   formatter: LogFormatter;
 }
 
-export { LineFormatter } from './formatters/line.formatter';
-export { JSONFormatter } from './formatters/json.formatter';
-export * from './logger.service';
+export { LineFormatter } from './formatters/line.formatter.js';
+export { JSONFormatter } from './formatters/json.formatter.js';
+export * from './logger.service.js';

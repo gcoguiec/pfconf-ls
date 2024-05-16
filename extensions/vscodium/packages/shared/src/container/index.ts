@@ -19,5 +19,11 @@ export function isServiceDisposable(object: any): object is Disposable {
   return 'dispose' in object;
 }
 
-export * from './container.error';
-export * from './container';
+export function tokenToStr<T>(token: ServiceToken<T>): string {
+  return typeof token === 'object' || typeof token === 'function'
+    ? token.name
+    : String(token);
+}
+
+export * from './container.error.js';
+export * from './container.js';
