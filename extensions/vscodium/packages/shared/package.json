@@ -13,14 +13,15 @@
     "lint": "eslint .",
     "lint:fix": "pnpm lint --fix",
     "lint:conflicts": "ESLINT_USE_FLAT_CONFIG=true npx eslint-config-prettier",
-    "unit": "vitest run",
-    "unit:watch": "vitest",
-    "unit:cov": "vitest --coverage run"
+    "spec": "vitest run",
+    "spec:watch": "vitest",
+    "spec:cov": "vitest --coverage run",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@types/node": "^20.12.7",
-    "@types/vscode": "^1.88.0",
-    "happy-dom": "^14.7.1",
-    "vitest": "^1.5.3"
+    "@types/node": "^20.12.12",
+    "@types/vscode": "^1.89.0",
+    "happy-dom": "^14.11.0",
+    "vitest": "^1.6.0"
   }
 }

@@ -2,11 +2,8 @@ import { LogLevel } from 'vscode';
 
 import type { LogRecord, LoggerServiceOptions } from './index.js';
 
+import { ExtensionContextService, LogOutputChannelService } from '../index.js';
 import { Extension } from '../extension.js';
-import {
-  ExtensionContextService,
-  LogOutputChannelService
-} from '../container/index.js';
 import { ConfigService } from '../config/index.js';
 
 export class LoggerService {

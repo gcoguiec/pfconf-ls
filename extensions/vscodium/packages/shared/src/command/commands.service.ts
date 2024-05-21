@@ -2,9 +2,9 @@ import { commands } from 'vscode';
 
 import type { Command } from './index.js';
 
+import { ExtensionContextService } from '../index.js';
 import { Extension } from '../extension.js';
 import { ExtensionError } from '../extension.error.js';
-import { ExtensionContextService } from '../container/index.js';
 
 export class CommandsService {
   protected _commands: Record<string, Command> = {};

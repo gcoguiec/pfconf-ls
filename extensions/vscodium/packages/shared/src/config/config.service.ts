@@ -2,8 +2,8 @@ import type { ConfigurationChangeEvent } from 'vscode';
 
 import { workspace } from 'vscode';
 
+import { ExtensionNameService } from '../index.js';
 import { Extension } from '../extension.js';
-import { ExtensionNameService } from '../container/index.js';
 
 export class ConfigService {
   protected readonly extensionName: string =

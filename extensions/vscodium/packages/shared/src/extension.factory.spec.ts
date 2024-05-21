@@ -1,10 +1,11 @@
+import type { ExtensionContext } from 'vscode';
+
 import { double } from 'vitest-double';
 import { describe, beforeEach, it, expect } from 'vitest';
 
 import type { Container } from './index.js';
 
 import { Extension, ExtensionFactory } from './index.js';
-import { ExtensionContext } from 'vscode';
 
 describe(ExtensionFactory.name, () => {
   let context: ExtensionContext;
@@ -26,17 +27,15 @@ describe(ExtensionFactory.name, () => {
       });
     });
 
-    describe('when container is not already initialized', () => {
+    describe('when container is not already initialized and context was not provided', () => {
       beforeEach(() => {
         Extension['_container'] = undefined;
       });
 
-      describe('when context was not provided', () => {
-        it('throws an error', () => {
-          expect(() => ExtensionFactory.create({})).toThrowError(
-            `Extension context is a requirement and must be provided using the 'context' option key.`
-          );
-        });
+      it('throws an error', () => {
+        expect(() => ExtensionFactory.create({})).toThrowError(
+          `Extension context is a requirement and must be provided using the 'context' option key.`
+        );
       });
     });
   });

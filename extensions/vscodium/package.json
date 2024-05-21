@@ -124,15 +124,15 @@
     "@gcoguiec/eslint-config": "^1.1.2",
     "@pfconf-ls/shared": "workspace:*",
     "@types/vscode": "^1.89.0",
-    "@typescript-eslint/eslint-plugin": "^7.9.0",
-    "@typescript-eslint/parser": "^7.9.0",
+    "@typescript-eslint/eslint-plugin": "^7.10.0",
+    "@typescript-eslint/parser": "^7.10.0",
     "@vitest/coverage-v8": "^1.6.0",
-    "@vscode/test-electron": "^2.3.9",
+    "@vscode/test-electron": "^2.3.10",
     "@vscode/vsce": "^2.26.1",
     "cspell": "^8.8.1",
-    "esbuild": "^0.21.2",
+    "esbuild": "^0.21.3",
     "esbuild-visualizer": "^0.6.0",
-    "eslint": "^9.2.0",
+    "eslint": "^9.3.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import-x": "^0.5.0",
     "eslint-plugin-perfectionist": "^2.10.0",
@@ -141,7 +141,7 @@
     "tslib": "^2.6.2",
     "typescript": "^5.4.5",
     "vitest": "^1.6.0",
-    "vitest-double": "^1.0.0",
+    "vitest-double": "^1.0.2",
     "vscode-languageserver-protocol": "^3.17.5"
   },
   "engines": {
@@ -152,7 +152,7 @@
   },
   "volta": {
     "node": "18.18.2",
-    "pnpm": "9.1.0"
+    "pnpm": "9.1.2"
   },
-  "packageManager": "pnpm@9.1.0"
+  "packageManager": "pnpm@9.1.2"
 }

@@ -5,17 +5,15 @@ import { window } from 'vscode';
 import { LineFormatter, LoggerService } from './logger/index.js';
 import {
   CommandsService,
+  ExtensionContextService,
+  ExtensionNameService,
+  LogOutputChannelService,
   type ExtensionFactoryOptions,
   type ExtensionOptions
 } from './index.js';
 import { Extension } from './extension.js';
 import { ExtensionError } from './extension.error.js';
-import {
-  Container,
-  ExtensionContextService,
-  ExtensionNameService,
-  LogOutputChannelService
-} from './container/index.js';
+import { Container } from './container/index.js';
 import { ConfigService } from './config/index.js';
 
 export const defaultOptions: ExtensionFactoryOptions = {

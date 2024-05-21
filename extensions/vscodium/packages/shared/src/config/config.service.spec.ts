@@ -14,8 +14,7 @@ import {
   vi
 } from 'vitest';
 
-import { Extension } from '../index.js';
-import { ExtensionNameService } from '../container/index.js';
+import { Extension, ExtensionNameService } from '../index.js';
 import { Container } from '../container/container.js';
 import { ConfigService } from '../config/config.service.js';
 

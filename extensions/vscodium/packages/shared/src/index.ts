@@ -1,6 +1,7 @@
-import type { ExtensionContext } from 'vscode';
+import type { ExtensionContext, LogOutputChannel } from 'vscode';
 
 import type { LoggerServiceOptions } from './logger/index.js';
+import type { ServiceToken } from './container/index.js';
 
 /**
  * Holds options for an Extension instance.
@@ -52,6 +53,15 @@ export interface ExtensionInterface {
    */
   deactivate(): Promise<void>;
 }
+
+export const LogOutputChannelService: ServiceToken<LogOutputChannel> =
+  Symbol('log-output-channel');
+
+export const ExtensionContextService: ServiceToken<ExtensionContext> =
+  Symbol('extension-context');
+
+export const ExtensionNameService: ServiceToken<string> =
+  Symbol('extension-name');
 
 export * from './config/index.js';
 export * from './logger/index.js';
