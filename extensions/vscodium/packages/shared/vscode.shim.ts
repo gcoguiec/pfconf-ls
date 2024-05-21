@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+import type * as vscode from 'vscode';
 
 import { double } from 'vitest-double';
 import { vi } from 'vitest';
