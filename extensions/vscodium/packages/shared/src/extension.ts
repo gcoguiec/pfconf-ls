@@ -11,16 +11,15 @@ export class Extension implements ExtensionInterface {
   /**
    * Activates the extension and its components.
    */
-  public async activate(): Promise<void> {
-    // @todo
+  public activate(): void {
+    Extension._container?.activate();
   }
 
   /**
    * Deactivates and cleans up the extension components and resources.
    */
-  public async deactivate(): Promise<void> {
+  public deactivate(): void {
     Extension.incinerateContainer();
-    return Promise.resolve(); // @todo fix me
   }
 
   /**

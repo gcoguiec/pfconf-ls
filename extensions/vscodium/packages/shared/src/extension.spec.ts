@@ -147,12 +147,4 @@ describe(Extension.name, () => {
       });
     });
   });
-
-  describe('activate()', () => {
-    it('does nothing (yet)', async () => {
-      await subject.activate();
-
-      expect(true).toBeTruthy();
-    });
-  });
 });

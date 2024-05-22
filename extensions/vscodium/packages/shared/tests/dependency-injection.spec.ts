@@ -1,13 +1,16 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { ExtensionContext } from 'vscode';
+
+import { double } from 'vitest-double';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+
 import { Extension } from '../src/extension.js';
 import { ExtensionFactory } from '../src/extension.factory.js';
-import { ExtensionContext } from 'vscode';
-import { double } from 'vitest-double';
 
 describe('Dependency Injection', () => {
   let context: ExtensionContext;
   let extension: Extension;
 
+  // eslint-disable-next-line @typescript-eslint/no-extraneous-class
   class MyFirstService {}
 
   class MySecondService {

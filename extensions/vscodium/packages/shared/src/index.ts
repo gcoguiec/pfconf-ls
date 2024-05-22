@@ -46,12 +46,22 @@ export interface ExtensionInterface {
   /**
    * Activates extension and its resources.
    */
-  activate(): Promise<void>;
+  activate(): Promise<void> | void;
 
   /**
    * Deactivates extension and dispose of its resources.
    */
-  deactivate(): Promise<void>;
+  deactivate(): Promise<void> | void;
+}
+
+/**
+ * Represents a type which can activate resources.
+ */
+export interface Activable {
+  /**
+   * Activates resource related to this object.
+   */
+  activate(): void;
 }
 
 export const LogOutputChannelService: ServiceToken<LogOutputChannel> =

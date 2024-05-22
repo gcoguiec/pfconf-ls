@@ -1,8 +1,14 @@
 import type { Disposable } from 'vscode';
 
 import type { ServiceToken } from './index.js';
+import type { Activable } from '../index.js';
 
-import { ContainerError, isServiceDisposable, tokenToStr } from './index.js';
+import {
+  ContainerError,
+  isServiceActivable,
+  isServiceDisposable,
+  tokenToStr
+} from './index.js';
 
 /**
  * A dependency injection container.
@@ -49,7 +55,7 @@ import { ContainerError, isServiceDisposable, tokenToStr } from './index.js';
  *   @inject protected readonly generic: GenericService;
  * }
  */
-export class Container implements Disposable {
+export class Container implements Activable, Disposable {
   /**
    * All service instances are injected from this registry.
    */
@@ -94,6 +100,21 @@ export class Container implements Disposable {
     }
 
     return this._registry.get(token) as Readonly<T>;
+  }
+
+  /**
+   * Activates container services.
+   */
+  public activate(): void {
+    this._registry.forEach(service => {
+      if (typeof service !== 'object' && typeof service !== 'function') {
+        return;
+      }
+      if (!isServiceActivable(service)) {
+        return;
+      }
+      service.activate();
+    });
   }
 
   /**
