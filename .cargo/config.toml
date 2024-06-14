@@ -1,0 +1,3 @@
+[alias]
+xtask = "run -q --package xtask --bin xtask --"
+lint = "clippy --all-targets --"

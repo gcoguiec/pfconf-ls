@@ -15,6 +15,9 @@
 //! [Parser]: https://docs.rs/tree-sitter/*/tree_sitter/struct.Parser.html
 //! [tree-sitter]: https://tree-sitter.github.io/
 
+#![deny(unsafe_code)]
+#![deny(unsafe_op_in_unsafe_fn)]
+
 use tree_sitter::Language;
 
 extern "C" {
@@ -25,7 +28,10 @@ extern "C" {
 ///
 /// [Language]: https://docs.rs/tree-sitter/*/tree_sitter/struct.Language.html
 pub fn language() -> Language {
-    unsafe { tree_sitter_pfconf() }
+    #[allow(unsafe_code)]
+    unsafe {
+        tree_sitter_pfconf()
+    }
 }
 
 /// The content of the [`node-types.json`][] file for this grammar.
