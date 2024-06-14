@@ -15,7 +15,7 @@ use serde::Deserialize;
 use serde_json::{Error as SerdeJsonError, Value};
 use std::io::Error as IoError;
 use thiserror::Error;
-use tracing::{debug, error, trace};
+use tracing::{debug, error, info, trace};
 
 use crate::cache::TOOLS_FLAG_CACHE;
 
@@ -257,4 +257,42 @@ pub fn ensure_satisfied_dependency(
         })
     }
     Ok(())
+}
+
+pub fn install_dependencies(package_path: PathBuf) -> Result<(), PnpmError> {
+    info!("Checking dependency availability...");
+    match ensure_dependencies(package_path.to_owned()) {
+        Ok(_) => {
+            info!("Dependencies are up-to-date.");
+        }
+        Err(
+            PnpmError::MismatchedDependencyVersion { .. } |
+            PnpmError::MissingDependency { .. }
+        ) => {
+            info!(
+                "One or multiple missing (or not up-to-date) dependencies \
+                 were detected. Attempting to correct the issue by running \
+                 `pnpm install`."
+            );
+            match pnpm_execute(vec![
+                "-C",
+                package_path.to_str().unwrap(),
+                "install",
+            ]) {
+                Ok(_) => {
+                    info!("Dependencies are successfully installed.");
+                }
+                Err(err) => {
+                    error!(
+                        "An error occured when trying to install \
+                         dependencies: {err}"
+                    );
+                }
+            }
+        }
+        Err(err) => return Err(err)
+    }
+    // Double-check package installation by calling the `ensure_dependencies`
+    // function a second time.
+    ensure_dependencies(package_path)
 }
