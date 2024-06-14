@@ -160,6 +160,7 @@ pub fn pnpm_execute(args: Vec<&str>) -> Result<Output, PnpmError> {
     }
 }
 
+/// Returns installed dependencies for a specific package.
 pub fn installed_dependencies_for_package(
     package_path: PathBuf
 ) -> Result<Vec<PackageJson>, PnpmError> {
@@ -187,6 +188,7 @@ pub fn installed_dependencies_for_package(
     }
 }
 
+/// Check if package dependencies are installed properly.
 pub fn ensure_dependencies(package_path: PathBuf) -> Result<(), PnpmError> {
     let package_json =
         PackageJson::from_path(package_path.join("package.json"))?;
@@ -214,6 +216,7 @@ pub fn ensure_dependencies(package_path: PathBuf) -> Result<(), PnpmError> {
     Ok(())
 }
 
+/// Check if the designated dependency is installed and verify if its version satisfies manifest requirements.
 pub fn ensure_satisfied_dependency(
     package_name: String,
     expected_version: String,
@@ -259,6 +262,7 @@ pub fn ensure_satisfied_dependency(
     Ok(())
 }
 
+/// Install specific package dependencies (if necessary).
 pub fn install_dependencies(package_path: PathBuf) -> Result<(), PnpmError> {
     info!("Checking dependency availability...");
     match ensure_dependencies(package_path.to_owned()) {
@@ -292,7 +296,6 @@ pub fn install_dependencies(package_path: PathBuf) -> Result<(), PnpmError> {
         }
         Err(err) => return Err(err)
     }
-    // Double-check package installation by calling the `ensure_dependencies`
-    // function a second time.
+    // Double-check (literally).
     ensure_dependencies(package_path)
 }
