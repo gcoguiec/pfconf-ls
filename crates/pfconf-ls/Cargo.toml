@@ -10,22 +10,32 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-cfg-if = "1.0.0"
-libc = "0.2.153"
+libc = { workspace = true }
+miette = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tracing-log = { workspace = true }
+tracing-subscriber = { workspace = true }
+cfg-if = { workspace = true }
+xflags = { workspace = true }
 lsp-server = "0.7.6"
 lsp-types = "0.95.1"
-miette = { version = "7.2.0", features = ["fancy"] }
-serde_json = { workspace = true }
-thiserror = "1.0.58"
-tracing = "0.1.40"
-tracing-log = "0.2.0"
-tracing-subscriber = { version = "0.3.18", default-features = false, features = ["fmt", "env-filter", "ansi"] }
 pfconf-tree-sitter = { path = "../pfconf-tree-sitter" }
-xflags = "0.3.2"
-
 
 [target.'cfg(target_os = "windows")'.dependencies.windows-sys]
 version = "0.52.0"
 features = [
     "Win32_System_Threading"
 ]
+
+[target.'cfg(all(target_arch = "wasm32"))'.build-dependencies]
+cargo-zigbuild = { version = "0.18.4" }
+
+[target.'cfg(all(target_arch = "wasm32"))'.features]
+default = ['zigbuild']
+zigbuild = ["dep:cargo-zigbuild"]
+
+[target.'cfg(all(target_arch = "wasm32"))'.profile.release]
+lto = "fat"
+codegen-units = 1
