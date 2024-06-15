@@ -138,7 +138,7 @@ pub fn is_pnpm_installed() -> bool {
 }
 
 /// Executes `pnpm` with provided arguments.
-pub fn pnpm_execute(args: Vec<&str>) -> Result<Output, PnpmError> {
+pub fn execute(args: Vec<&str>) -> Result<Output, PnpmError> {
     if !is_pnpm_installed() {
         error!(
             "A dependency is missing: the Node package manager `pnpm` is not \
@@ -160,19 +160,30 @@ pub fn pnpm_execute(args: Vec<&str>) -> Result<Output, PnpmError> {
     }
 }
 
+/// Executes a `pnpm` task in a package context.
+pub fn execute_for_package(
+    package_path: PathBuf,
+    args: Vec<&str>
+) -> Result<Output, PnpmError> {
+    execute(
+        vec![
+            "-C",
+            package_path
+                .to_str()
+                .expect("Could not convert package path to UTF-8"),
+        ]
+        .into_iter()
+        .chain(args.into_iter())
+        .collect()
+    )
+}
+
 /// Returns installed dependencies for a specific package.
 pub fn installed_dependencies_for_package(
     package_path: PathBuf
 ) -> Result<Vec<PackageJson>, PnpmError> {
-    let output = pnpm_execute(vec![
-        "-C",
-        package_path
-            .to_str()
-            .expect("Unable to convert package path"),
-        "list",
-        "--depth",
-        "0",
-        "--json",
+    let output = execute_for_package(package_path.to_owned(), vec![
+        "list", "--depth", "0", "--json",
     ])?;
     trace!("Installed Dependencies Output: {:?}", output);
     let json = match str::from_utf8(&output.stdout) {
@@ -189,7 +200,9 @@ pub fn installed_dependencies_for_package(
 }
 
 /// Check if package dependencies are installed properly.
-pub fn ensure_dependencies(package_path: PathBuf) -> Result<(), PnpmError> {
+pub fn ensure_dependencies_for_package(
+    package_path: PathBuf
+) -> Result<(), PnpmError> {
     let package_json =
         PackageJson::from_path(package_path.join("package.json"))?;
     let installed = &installed_dependencies_for_package(package_path)?[0];
@@ -207,7 +220,7 @@ pub fn ensure_dependencies(package_path: PathBuf) -> Result<(), PnpmError> {
     manifest_dependencies.shrink_to_fit();
 
     for (name, version) in manifest_dependencies.into_iter() {
-        ensure_satisfied_dependency(
+        ensure_satisfied_dependency_for_package(
             name,
             version.as_str().unwrap().to_string(),
             &installed_dependencies
@@ -217,7 +230,7 @@ pub fn ensure_dependencies(package_path: PathBuf) -> Result<(), PnpmError> {
 }
 
 /// Check if the designated dependency is installed and verify if its version satisfies manifest requirements.
-pub fn ensure_satisfied_dependency(
+pub fn ensure_satisfied_dependency_for_package(
     package_name: String,
     expected_version: String,
     installed_dependencies: &HashMap<String, Value>
@@ -263,9 +276,11 @@ pub fn ensure_satisfied_dependency(
 }
 
 /// Install specific package dependencies (if necessary).
-pub fn install_dependencies(package_path: PathBuf) -> Result<(), PnpmError> {
+pub fn install_dependencies_for_package(
+    package_path: PathBuf
+) -> Result<(), PnpmError> {
     info!("Checking dependency availability...");
-    match ensure_dependencies(package_path.to_owned()) {
+    match ensure_dependencies_for_package(package_path.to_owned()) {
         Ok(_) => {
             info!("Dependencies are up-to-date.");
         }
@@ -278,11 +293,8 @@ pub fn install_dependencies(package_path: PathBuf) -> Result<(), PnpmError> {
                  were detected. Attempting to correct the issue by running \
                  `pnpm install`."
             );
-            match pnpm_execute(vec![
-                "-C",
-                package_path.to_str().unwrap(),
-                "install",
-            ]) {
+            match execute(vec!["-C", package_path.to_str().unwrap(), "install"])
+            {
                 Ok(_) => {
                     info!("Dependencies are successfully installed.");
                 }
@@ -297,5 +309,5 @@ pub fn install_dependencies(package_path: PathBuf) -> Result<(), PnpmError> {
         Err(err) => return Err(err)
     }
     // Double-check (literally).
-    ensure_dependencies(package_path)
+    ensure_dependencies_for_package(package_path)
 }

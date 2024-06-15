@@ -6,31 +6,25 @@ use tracing::{error, info, trace};
 use crate::{
     cli::{flags, Command},
     from_workspace_root,
-    tools::pnpm::{install_dependencies, pnpm_execute}
+    tools::pnpm::{execute_for_package, install_dependencies_for_package}
 };
 
 impl Command for flags::GenerateGrammar {
     fn run(self) -> Result<ExitCode> {
-        match install_dependencies(from_workspace_root(PathBuf::from(
-            "grammar"
-        ))) {
-            Ok(_) => {}
-            Err(err) => {
-                error!("{err}");
-                return Ok(ExitCode::FAILURE)
-            }
+        if let Err(err) = install_dependencies_for_package(from_workspace_root(
+            PathBuf::from("grammar")
+        )) {
+            error!("{err}");
+            return Ok(ExitCode::FAILURE)
         }
 
         info!(
             "Proceeding to generate parser/scanner from grammar definition..."
         );
-        match pnpm_execute(vec![
-            "-C",
-            from_workspace_root(PathBuf::from("grammar"))
-                .to_str()
-                .unwrap(),
-            "gen",
-        ]) {
+        match execute_for_package(
+            from_workspace_root(PathBuf::from("grammar")),
+            vec!["gen"]
+        ) {
             Ok(_) => {
                 info!("Parser & scanner successfully generated.");
                 Ok(ExitCode::SUCCESS)
@@ -46,13 +40,10 @@ impl Command for flags::GenerateGrammar {
 // @TODO this sucks
 impl Command for flags::CleanGrammar {
     fn run(self) -> Result<ExitCode> {
-        match pnpm_execute(vec![
-            "-C",
-            from_workspace_root(PathBuf::from("grammar"))
-                .to_str()
-                .unwrap(),
-            "prune",
-        ]) {
+        match execute_for_package(
+            from_workspace_root(PathBuf::from("grammar")),
+            vec!["prune"]
+        ) {
             Ok(_) => {
                 trace!("Extraneous packages were removed.");
                 Ok(ExitCode::SUCCESS)
