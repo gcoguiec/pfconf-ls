@@ -25,7 +25,8 @@ pub(super) enum CacheError<Guard: Debug> {
 pub(super) static TOOLS_FLAG_CACHE: Lazy<Mutex<DependencyFlagCache>> =
     Lazy::new(|| {
         Mutex::new(LruCache::new(
-            NonZeroUsize::new(TOOLS_FLAG_CACHE_CAP).unwrap()
+            NonZeroUsize::new(TOOLS_FLAG_CACHE_CAP)
+                .expect("Invalid tools flag cache capacity")
         ))
     });
 

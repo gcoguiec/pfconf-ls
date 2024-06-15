@@ -41,7 +41,7 @@ pub enum PnpmError {
     #[diagnostic(code(xtask::pnpm::json_parsing_error))]
     JSONParsingError {
         error: SerdeJsonError,
-        filepath: String
+        filepath: PathBuf
     },
 
     #[error("Missing dependency package '{package_name}'.")]
@@ -84,22 +84,21 @@ pub struct PackageJson {
 }
 
 impl PackageJson {
-    pub fn from_path(manifest_path: PathBuf) -> Result<Self, PnpmError> {
-        let reader =
-            BufReader::new(match File::open(manifest_path.to_str().unwrap()) {
-                Ok(file) => file,
-                Err(err) => {
-                    return Err(PnpmError::InvalidPackageManifestPath {
-                        error: err,
-                        filepath: manifest_path
-                    })
-                }
-            });
+    pub fn from_path(manifest_path: &Path) -> Result<Self, PnpmError> {
+        let reader = BufReader::new(match File::open(manifest_path) {
+            Ok(file) => file,
+            Err(err) => {
+                return Err(PnpmError::InvalidPackageManifestPath {
+                    error: err,
+                    filepath: manifest_path.to_path_buf()
+                })
+            }
+        });
         match serde_json::from_reader(reader) {
             Ok(json) => Ok(json),
             Err(err) => Err(PnpmError::JSONParsingError {
                 error: err,
-                filepath: String::from(manifest_path.to_str().unwrap())
+                filepath: manifest_path.to_path_buf()
             })
         }
     }
@@ -118,14 +117,18 @@ impl PackageJson {
 
 /// Checks if the system has pnpm installed.
 pub fn is_pnpm_installed() -> bool {
-    let mut cache = TOOLS_FLAG_CACHE.lock().unwrap();
+    let mut cache = TOOLS_FLAG_CACHE
+        .lock()
+        .expect("Could not lock the tools flag cache.");
     if let Some(option) = cache.get(PNPM_FLAG_KEY) {
         return *option;
     }
     match cmd!(PNPM_BINARY, "--version").read() {
         Ok(stdout) => {
             trace!("Found `pnpm` version {stdout}.");
-            let flag = Regex::new(VERSION_PATTERN).unwrap().is_match(&stdout);
+            let flag = Regex::new(VERSION_PATTERN)
+                .expect("Invalid version regex pattern.")
+                .is_match(&stdout);
             cache.put(PNPM_FLAG_KEY, flag);
             flag
         }
@@ -194,7 +197,7 @@ pub fn installed_dependencies_for_package(
         Ok(list) => Ok(list),
         Err(err) => Err(PnpmError::JSONParsingError {
             error: err,
-            filepath: String::from(package_path.to_str().unwrap())
+            filepath: package_path.to_path_buf()
         })
     }
 }
@@ -204,7 +207,7 @@ pub fn ensure_dependencies_for_package(
     package_path: &Path
 ) -> Result<(), PnpmError> {
     let package_json =
-        PackageJson::from_path(package_path.join("package.json"))?;
+        PackageJson::from_path(&package_path.join("package.json"))?;
     let installed = &installed_dependencies_for_package(package_path)?[0];
 
     let mut installed_dependencies: HashMap<String, Value> = HashMap::new();
@@ -222,7 +225,10 @@ pub fn ensure_dependencies_for_package(
     for (name, version) in manifest_dependencies.into_iter() {
         ensure_satisfied_dependency_for_package(
             name,
-            version.as_str().unwrap().to_string(),
+            version
+                .as_str()
+                .expect("Expected version to be a valid JSON string.")
+                .to_string(),
             &installed_dependencies
         )?;
     }
@@ -235,15 +241,18 @@ pub fn ensure_satisfied_dependency_for_package(
     expected_version: String,
     installed_dependencies: &HashMap<String, Value>
 ) -> Result<(), PnpmError> {
-    let installed_version: String =
-        match installed_dependencies.get(&package_name) {
-            Some(dependency) if dependency.get("version").is_some() => {
-                dependency["version"].as_str().unwrap().to_string()
-            }
-            Some(_) | None => {
-                return Err(PnpmError::MissingDependency { package_name })
-            }
-        };
+    let installed_version: String = match installed_dependencies
+        .get(&package_name)
+    {
+        Some(dependency) if dependency.get("version").is_some() => dependency
+            ["version"]
+            .as_str()
+            .expect("Expected version to be a valid JSON string.")
+            .to_string(),
+        Some(_) | None => {
+            return Err(PnpmError::MissingDependency { package_name })
+        }
+    };
 
     let required_semver = match VersionReq::parse(&expected_version) {
         Ok(req) => req,

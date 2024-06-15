@@ -28,7 +28,7 @@ fn main() -> Result<ExitCode> {
 
     // Displays help if no argument is provided.
     if env::args().count() == 1 {
-        let help = flags::Xtask::from_vec(vec!["--help".into()]).err().unwrap();
+        let help = flags::Xtask::from_vec(vec!["--help".into()]).unwrap_err();
         println!("{help}");
         return Ok(ExitCode::SUCCESS);
     }
