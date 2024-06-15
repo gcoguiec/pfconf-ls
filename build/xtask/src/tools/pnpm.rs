@@ -2,7 +2,7 @@ use std::{
     collections::HashMap,
     fs::File,
     io::BufReader,
-    path::PathBuf,
+    path::{Path, PathBuf},
     process::Output,
     str::{self, Utf8Error}
 };
@@ -104,13 +104,13 @@ impl PackageJson {
         }
     }
 
-    pub fn clone_iter(
+    pub fn iter(
         &self
-    ) -> impl Iterator<Item = Option<HashMap<String, Value>>> {
+    ) -> impl Iterator<Item = &Option<HashMap<String, Value>>> {
         vec![
-            self.dependencies.clone(),
-            self.dev_dependencies.clone(),
-            self.peer_dependencies.clone(),
+            &self.dependencies,
+            &self.dev_dependencies,
+            &self.peer_dependencies,
         ]
         .into_iter()
     }
@@ -162,7 +162,7 @@ pub fn execute(args: Vec<&str>) -> Result<Output, PnpmError> {
 
 /// Executes a `pnpm` task in a package context.
 pub fn execute_for_package(
-    package_path: PathBuf,
+    package_path: &Path,
     args: Vec<&str>
 ) -> Result<Output, PnpmError> {
     execute(
@@ -173,16 +173,16 @@ pub fn execute_for_package(
                 .expect("Could not convert package path to UTF-8"),
         ]
         .into_iter()
-        .chain(args.into_iter())
+        .chain(args)
         .collect()
     )
 }
 
 /// Returns installed dependencies for a specific package.
 pub fn installed_dependencies_for_package(
-    package_path: PathBuf
+    package_path: &Path
 ) -> Result<Vec<PackageJson>, PnpmError> {
-    let output = execute_for_package(package_path.to_owned(), vec![
+    let output = execute_for_package(package_path, vec![
         "list", "--depth", "0", "--json",
     ])?;
     trace!("Installed Dependencies Output: {:?}", output);
@@ -201,21 +201,21 @@ pub fn installed_dependencies_for_package(
 
 /// Check if package dependencies are installed properly.
 pub fn ensure_dependencies_for_package(
-    package_path: PathBuf
+    package_path: &Path
 ) -> Result<(), PnpmError> {
     let package_json =
         PackageJson::from_path(package_path.join("package.json"))?;
     let installed = &installed_dependencies_for_package(package_path)?[0];
 
     let mut installed_dependencies: HashMap<String, Value> = HashMap::new();
-    for collection in installed.clone_iter().flatten() {
-        installed_dependencies.extend(collection);
+    for collection in installed.iter().flatten() {
+        installed_dependencies.extend(collection.to_owned());
     }
     installed_dependencies.shrink_to_fit();
 
     let mut manifest_dependencies: HashMap<String, Value> = HashMap::new();
-    for collection in package_json.clone_iter().flatten() {
-        manifest_dependencies.extend(collection);
+    for collection in package_json.iter().flatten() {
+        manifest_dependencies.extend(collection.to_owned());
     }
     manifest_dependencies.shrink_to_fit();
 
@@ -277,10 +277,25 @@ pub fn ensure_satisfied_dependency_for_package(
 
 /// Install specific package dependencies (if necessary).
 pub fn install_dependencies_for_package(
-    package_path: PathBuf
+    package_path: &PathBuf
 ) -> Result<(), PnpmError> {
     info!("Checking dependency availability...");
-    match ensure_dependencies_for_package(package_path.to_owned()) {
+    let run_install =
+        |package_path: &PathBuf| match execute_for_package(package_path, vec![
+            "install",
+        ]) {
+            Ok(_) => {
+                info!("Dependencies are successfully installed.");
+            }
+            Err(err) => {
+                error!(
+                    "An error occured when trying to install dependencies: \
+                     {err}"
+                );
+            }
+        };
+
+    match ensure_dependencies_for_package(package_path) {
         Ok(_) => {
             info!("Dependencies are up-to-date.");
         }
@@ -293,18 +308,7 @@ pub fn install_dependencies_for_package(
                  were detected. Attempting to correct the issue by running \
                  `pnpm install`."
             );
-            match execute(vec!["-C", package_path.to_str().unwrap(), "install"])
-            {
-                Ok(_) => {
-                    info!("Dependencies are successfully installed.");
-                }
-                Err(err) => {
-                    error!(
-                        "An error occured when trying to install \
-                         dependencies: {err}"
-                    );
-                }
-            }
+            run_install(package_path)
         }
         Err(err) => return Err(err)
     }
