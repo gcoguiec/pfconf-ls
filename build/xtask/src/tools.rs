@@ -1,2 +1,2 @@
 pub mod cargo;
-pub mod pnpm;
+pub mod node;

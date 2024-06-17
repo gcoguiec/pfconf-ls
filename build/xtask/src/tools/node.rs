@@ -21,17 +21,21 @@ use crate::cache::TOOLS_FLAG_CACHE;
 
 static PNPM_BINARY: &str = "pnpm";
 static PNPM_FLAG_KEY: &str = "has_pnpm";
+
+static VOLTA_BINARY: &str = "volta";
+static VOLTA_FLAG_KEY: &str = "has_volta";
+
 static VERSION_PATTERN: &str = r"^\d+.\d+.\d+$";
 
 #[derive(Debug, Error, Diagnostic)]
-pub enum PnpmError {
+pub enum NodeError {
     #[error("The `pnpm` package manager is not present on this system.")]
     #[diagnostic(code(xtask::pnpm::not_present))]
-    NotPresent,
+    PnpmNotPresent,
 
     #[error("Failed to execute `pnpm` command '{command}', {error}.")]
     #[diagnostic(code(xtask::pnpm::execution_failed))]
-    ExecutionFailed { error: IoError, command: String },
+    PnpmExecutionFailed { error: IoError, command: String },
 
     #[error("Failed to convert manifest content to UTF-8, {0}.")]
     #[diagnostic(code(xtask::pnpm::output_processing_error))]
@@ -80,15 +84,16 @@ pub enum PnpmError {
 pub struct PackageJson {
     pub dependencies: Option<HashMap<String, Value>>,
     pub dev_dependencies: Option<HashMap<String, Value>>,
-    pub peer_dependencies: Option<HashMap<String, Value>>
+    pub peer_dependencies: Option<HashMap<String, Value>>,
+    pub volta: Option<HashMap<String, String>>
 }
 
 impl PackageJson {
-    pub fn from_path(manifest_path: &Path) -> Result<Self, PnpmError> {
+    pub fn from_path(manifest_path: &Path) -> Result<Self, NodeError> {
         let reader = BufReader::new(match File::open(manifest_path) {
             Ok(file) => file,
             Err(err) => {
-                return Err(PnpmError::InvalidPackageManifestPath {
+                return Err(NodeError::InvalidPackageManifestPath {
                     error: err,
                     filepath: manifest_path.to_path_buf()
                 })
@@ -96,7 +101,7 @@ impl PackageJson {
         });
         match serde_json::from_reader(reader) {
             Ok(json) => Ok(json),
-            Err(err) => Err(PnpmError::JSONParsingError {
+            Err(err) => Err(NodeError::JSONParsingError {
                 error: err,
                 filepath: manifest_path.to_path_buf()
             })
@@ -140,14 +145,39 @@ pub fn is_pnpm_installed() -> bool {
     }
 }
 
-/// Executes `pnpm` with provided arguments.
-pub fn execute(args: Vec<&str>) -> Result<Output, PnpmError> {
+/// Checks if the system has volta installed.
+pub fn is_volta_installed() -> bool {
+    let mut cache = TOOLS_FLAG_CACHE
+        .lock()
+        .expect("Could not lock the tools flag cache.");
+    if let Some(option) = cache.get(VOLTA_FLAG_KEY) {
+        return *option;
+    }
+    match cmd!(VOLTA_BINARY, "--version").read() {
+        Ok(stdout) => {
+            trace!("Found `volta` version {stdout}.");
+            let flag = Regex::new(VERSION_PATTERN)
+                .expect("Invalid version regex pattern.")
+                .is_match(&stdout);
+            cache.put(VOLTA_FLAG_KEY, flag);
+            flag
+        }
+        Err(err) => {
+            debug!("Underlying error: {err}");
+            cache.put(VOLTA_FLAG_KEY, false);
+            false
+        }
+    }
+}
+
+/// Executes node / pnpm with provided arguments.
+pub fn execute(args: Vec<&str>) -> Result<Output, NodeError> {
     if !is_pnpm_installed() {
         error!(
             "A dependency is missing: the Node package manager `pnpm` is not \
              installed."
         );
-        return Err(PnpmError::NotPresent);
+        return Err(NodeError::PnpmNotPresent);
     }
     let command = args.join(" ");
     trace!("Command: '{command}'");
@@ -155,7 +185,7 @@ pub fn execute(args: Vec<&str>) -> Result<Output, PnpmError> {
         Ok(output) => Ok(output),
         Err(err) => {
             debug!("Underlying I/O error: {err}");
-            Err(PnpmError::ExecutionFailed {
+            Err(NodeError::PnpmExecutionFailed {
                 error: err,
                 command
             })
@@ -167,7 +197,7 @@ pub fn execute(args: Vec<&str>) -> Result<Output, PnpmError> {
 pub fn execute_for_package(
     package_path: &Path,
     args: Vec<&str>
-) -> Result<Output, PnpmError> {
+) -> Result<Output, NodeError> {
     execute(
         vec![
             "-C",
@@ -184,18 +214,18 @@ pub fn execute_for_package(
 /// Returns installed dependencies for a specific package.
 pub fn installed_dependencies_for_package(
     package_path: &Path
-) -> Result<Vec<PackageJson>, PnpmError> {
+) -> Result<Vec<PackageJson>, NodeError> {
     let output = execute_for_package(package_path, vec![
         "list", "--depth", "0", "--json",
     ])?;
     trace!("Installed Dependencies Output: {:?}", output);
     let json = match str::from_utf8(&output.stdout) {
         Ok(value) => value,
-        Err(err) => return Err(PnpmError::ManifestProcessingError(err))
+        Err(err) => return Err(NodeError::ManifestProcessingError(err))
     };
     match serde_json::from_str(json.trim()) {
         Ok(list) => Ok(list),
-        Err(err) => Err(PnpmError::JSONParsingError {
+        Err(err) => Err(NodeError::JSONParsingError {
             error: err,
             filepath: package_path.to_path_buf()
         })
@@ -205,7 +235,7 @@ pub fn installed_dependencies_for_package(
 /// Check if package dependencies are installed properly.
 pub fn ensure_dependencies_for_package(
     package_path: &Path
-) -> Result<(), PnpmError> {
+) -> Result<(), NodeError> {
     let package_json =
         PackageJson::from_path(&package_path.join("package.json"))?;
     let installed = &installed_dependencies_for_package(package_path)?[0];
@@ -240,7 +270,7 @@ pub fn ensure_satisfied_dependency_for_package(
     package_name: String,
     expected_version: String,
     installed_dependencies: &HashMap<String, Value>
-) -> Result<(), PnpmError> {
+) -> Result<(), NodeError> {
     let installed_version: String = match installed_dependencies
         .get(&package_name)
     {
@@ -250,14 +280,14 @@ pub fn ensure_satisfied_dependency_for_package(
             .expect("Expected version to be a valid JSON string.")
             .to_string(),
         Some(_) | None => {
-            return Err(PnpmError::MissingDependency { package_name })
+            return Err(NodeError::MissingDependency { package_name })
         }
     };
 
     let required_semver = match VersionReq::parse(&expected_version) {
         Ok(req) => req,
         Err(err) => {
-            return Err(PnpmError::UnparsableVersion {
+            return Err(NodeError::UnparsableVersion {
                 package_name,
                 version: expected_version,
                 error: err
@@ -267,7 +297,7 @@ pub fn ensure_satisfied_dependency_for_package(
     let installed_semver = match Version::parse(&installed_version) {
         Ok(version) => version,
         Err(err) => {
-            return Err(PnpmError::UnparsableVersion {
+            return Err(NodeError::UnparsableVersion {
                 package_name,
                 version: installed_version,
                 error: err
@@ -275,7 +305,7 @@ pub fn ensure_satisfied_dependency_for_package(
         }
     };
     if !required_semver.matches(&installed_semver) {
-        return Err(PnpmError::MismatchedDependencyVersion {
+        return Err(NodeError::MismatchedDependencyVersion {
             package_name,
             expected_version,
             installed_version
@@ -287,7 +317,7 @@ pub fn ensure_satisfied_dependency_for_package(
 /// Install specific package dependencies (if necessary).
 pub fn install_dependencies_for_package(
     package_path: &PathBuf
-) -> Result<(), PnpmError> {
+) -> Result<(), NodeError> {
     info!("Checking dependency availability...");
     let run_install =
         |package_path: &PathBuf| match execute_for_package(package_path, vec![
@@ -309,8 +339,8 @@ pub fn install_dependencies_for_package(
             info!("Dependencies are up-to-date.");
         }
         Err(
-            PnpmError::MismatchedDependencyVersion { .. } |
-            PnpmError::MissingDependency { .. }
+            NodeError::MismatchedDependencyVersion { .. } |
+            NodeError::MissingDependency { .. }
         ) => {
             info!(
                 "One or multiple missing (or not up-to-date) dependencies \
