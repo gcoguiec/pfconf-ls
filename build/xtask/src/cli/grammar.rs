@@ -1,4 +1,4 @@
-use std::{path::PathBuf, process::ExitCode};
+use std::{fs, path::PathBuf, process::ExitCode};
 
 use miette::Result;
 use tracing::{error, info, warn};
@@ -29,10 +29,10 @@ impl Command for flags::GenerateGrammar {
                 }
             };
 
-        // We check if `volta` is available, if not we warn the end-user about it.
+        // We check if `volta` is available, if not we warn the developer about it.
         if manifest.volta.is_some() && !is_volta_installed() {
             let volta_config = manifest.volta.expect(
-                "Volta configuration object was expected in the package \
+                "A `volta` configuration object was expected in the package \
                  manifest"
             );
             let expected_node_version = volta_config.get("node").expect(
@@ -58,8 +58,22 @@ impl Command for flags::GenerateGrammar {
         info!(
             "Proceeding to generate parser/scanner from grammar definition..."
         );
+
         match execute_for_package(&package_path, vec!["gen"]) {
             Ok(_) => {
+                // We make sure parser was successfully generated before moving on.
+                let artifact_path = package_path.join("src/parser.c");
+                if !artifact_path.exists() {
+                    error!(
+                        "Generation succeeded but '{}' is missing from \
+                         artifacts.",
+                        artifact_path.to_str().expect(
+                            "Could not convert artifact path to UTF-8."
+                        )
+                    );
+                    return Ok(ExitCode::FAILURE)
+                }
+
                 info!("Parser & scanner successfully generated.");
                 Ok(ExitCode::SUCCESS)
             }
@@ -71,8 +85,30 @@ impl Command for flags::GenerateGrammar {
     }
 }
 
+// Cleans-up grammar project by removing the `node_modules` folder.
 impl Command for flags::CleanGrammar {
     fn run(self) -> Result<ExitCode> {
-        Ok(ExitCode::SUCCESS)
+        info!("Proceeding to clean-up grammar project...");
+        let modules_path = from_workspace_root(PathBuf::from(PACKAGE_PATH))
+            .join("node_modules");
+
+        if !modules_path.exists() {
+            info!("Nothing to clean-up 💪");
+            return Ok(ExitCode::SUCCESS)
+        }
+
+        match fs::remove_dir_all(modules_path) {
+            Ok(()) => {
+                info!("Clean-up done!");
+                Ok(ExitCode::SUCCESS)
+            }
+            Err(err) => {
+                error!(
+                    "Cleaning-up grammar node modules directory did not \
+                     succeed. {err}"
+                );
+                Ok(ExitCode::FAILURE)
+            }
+        }
     }
 }

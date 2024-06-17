@@ -322,6 +322,7 @@ pub fn install_dependencies_for_package(
     let run_install =
         |package_path: &PathBuf| match execute_for_package(package_path, vec![
             "install",
+            "--frozen-lockfile",
         ]) {
             Ok(_) => {
                 info!("Dependencies are successfully installed.");
