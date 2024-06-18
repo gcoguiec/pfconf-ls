@@ -145,38 +145,9 @@ pub fn is_pnpm_installed() -> bool {
     }
 }
 
-/// Checks if the system has volta installed.
-pub fn is_volta_installed() -> bool {
-    let mut cache = TOOLS_FLAG_CACHE
-        .lock()
-        .expect("Could not lock the tools flag cache.");
-    if let Some(option) = cache.get(VOLTA_FLAG_KEY) {
-        return *option;
-    }
-    match cmd!(VOLTA_BINARY, "--version").read() {
-        Ok(stdout) => {
-            trace!("Found `volta` version {stdout}.");
-            let flag = Regex::new(VERSION_PATTERN)
-                .expect("Invalid version regex pattern.")
-                .is_match(&stdout);
-            cache.put(VOLTA_FLAG_KEY, flag);
-            flag
-        }
-        Err(err) => {
-            debug!("Underlying error: {err}");
-            cache.put(VOLTA_FLAG_KEY, false);
-            false
-        }
-    }
-}
-
 /// Executes node / pnpm with provided arguments.
 pub fn execute(args: Vec<&str>) -> Result<Output, NodeError> {
     if !is_pnpm_installed() {
-        error!(
-            "A dependency is missing: the Node package manager `pnpm` is not \
-             installed."
-        );
         return Err(NodeError::PnpmNotPresent);
     }
     let command = args.join(" ");
@@ -354,4 +325,29 @@ pub fn install_dependencies_for_package(
     }
     // Double-check (literally).
     ensure_dependencies_for_package(package_path)
+}
+
+/// Checks if the system has volta installed.
+pub fn is_volta_installed() -> bool {
+    let mut cache = TOOLS_FLAG_CACHE
+        .lock()
+        .expect("Could not lock the tools flag cache.");
+    if let Some(option) = cache.get(VOLTA_FLAG_KEY) {
+        return *option;
+    }
+    match cmd!(VOLTA_BINARY, "--version").read() {
+        Ok(stdout) => {
+            trace!("Found `volta` version {stdout}.");
+            let flag = Regex::new(VERSION_PATTERN)
+                .expect("Invalid version regex pattern.")
+                .is_match(&stdout);
+            cache.put(VOLTA_FLAG_KEY, flag);
+            flag
+        }
+        Err(err) => {
+            debug!("Underlying error: {err}");
+            cache.put(VOLTA_FLAG_KEY, false);
+            false
+        }
+    }
 }
