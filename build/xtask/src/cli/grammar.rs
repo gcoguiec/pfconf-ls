@@ -7,9 +7,9 @@ use crate::{
     cli::{flags, Command},
     from_workspace_root,
     tools::node::{
-        execute_for_package,
-        install_dependencies_for_package,
         is_volta_installed,
+        pnpm_execute_for_package,
+        pnpm_install_dependencies_for_package,
         PackageJson
     }
 };
@@ -50,7 +50,7 @@ impl Command for flags::GenerateGrammar {
         // We verify that grammar project `node_modules` is correctly populated
         // and that all dependencies are up-to-date. If not, we try running
         // `pnpm install` once to correct the issue.
-        if let Err(err) = install_dependencies_for_package(&package_path) {
+        if let Err(err) = pnpm_install_dependencies_for_package(&package_path) {
             error!("{err}");
             return Ok(ExitCode::FAILURE)
         }
@@ -59,7 +59,7 @@ impl Command for flags::GenerateGrammar {
             "Proceeding to generate parser/scanner from grammar definition..."
         );
 
-        match execute_for_package(&package_path, vec!["gen"]) {
+        match pnpm_execute_for_package(&package_path, vec!["gen"]) {
             Ok(_) => {
                 // We make sure parser was successfully generated before moving on.
                 let artifact_path = package_path.join("src/parser.c");
