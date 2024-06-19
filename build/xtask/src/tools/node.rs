@@ -19,10 +19,10 @@ use tracing::{debug, error, info, trace};
 
 use crate::{cache::TOOLS_FLAG_CACHE, fetch_env_or};
 
-static PNPM_BINARY: &str = "pnpm";
+static PNPM_DEFAULT_BINARY: &str = "pnpm";
 static PNPM_FLAG_KEY: &str = "has_pnpm";
 
-static VOLTA_BINARY: &str = "volta";
+static VOLTA_DEFAULT_BINARY: &str = "volta";
 static VOLTA_FLAG_KEY: &str = "has_volta";
 
 static VERSION_PATTERN: &str = r"^\d+.\d+.\d+$";
@@ -128,7 +128,7 @@ pub fn is_pnpm_installed() -> bool {
     if let Some(option) = cache.get(PNPM_FLAG_KEY) {
         return *option;
     }
-    match cmd!(fetch_env_or("PNPM", PNPM_BINARY), "--version").read() {
+    match cmd!(fetch_env_or("PNPM", PNPM_DEFAULT_BINARY), "--version").read() {
         Ok(stdout) => {
             trace!("Found `pnpm` version {stdout}.");
             let flag = Regex::new(VERSION_PATTERN)
@@ -152,7 +152,7 @@ pub fn pnpm_execute(args: Vec<&str>) -> Result<Output, NodeError> {
     }
     let command = args.join(" ");
     trace!("Command: '{command}'");
-    match cmd(fetch_env_or("PNPM", PNPM_BINARY), args)
+    match cmd(fetch_env_or("PNPM", PNPM_DEFAULT_BINARY), args)
         .stdout_capture()
         .run()
     {
@@ -298,7 +298,7 @@ pub fn pnpm_install_dependencies_for_package(
         vec!["install", "--frozen-lockfile"]
     ) {
         Ok(_) => {
-            info!("Dependencies are successfully installed.");
+            info!("✅ Dependencies are successfully installed.");
         }
         Err(err) => {
             error!(
@@ -309,7 +309,7 @@ pub fn pnpm_install_dependencies_for_package(
 
     match pnpm_ensure_dependencies_for_package(package_path) {
         Ok(_) => {
-            info!("Dependencies are up-to-date.");
+            info!("✅ Dependencies are up-to-date.");
         }
         Err(
             NodeError::MismatchedDependencyVersion { .. } |
@@ -336,7 +336,8 @@ pub fn is_volta_installed() -> bool {
     if let Some(option) = cache.get(VOLTA_FLAG_KEY) {
         return *option;
     }
-    match cmd!(fetch_env_or("VOLTA", VOLTA_BINARY), "--version").read() {
+    match cmd!(fetch_env_or("VOLTA", VOLTA_DEFAULT_BINARY), "--version").read()
+    {
         Ok(stdout) => {
             trace!("Found `volta` version {stdout}.");
             let flag = Regex::new(VERSION_PATTERN)

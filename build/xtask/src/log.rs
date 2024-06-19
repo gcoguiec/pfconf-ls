@@ -86,8 +86,11 @@ where
         } else {
             meta.level().to_string()
         };
-        write!(writer, "{}:", level)?;
-        write!(writer, " ")?;
+        write!(writer, "{}: ", level)?;
+
+        if *meta.level() == Level::ERROR {
+            write!(writer, "❌ ")?;
+        }
 
         // Fields
         ctx.field_format().format_fields(writer.by_ref(), event)?;

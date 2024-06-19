@@ -74,7 +74,7 @@ impl Command for flags::GenerateGrammar {
                     return Ok(ExitCode::FAILURE)
                 }
 
-                info!("Parser & scanner successfully generated.");
+                info!("✅ Parser & scanner successfully generated.");
                 Ok(ExitCode::SUCCESS)
             }
             Err(err) => {
@@ -93,13 +93,13 @@ impl Command for flags::CleanGrammar {
             .join("node_modules");
 
         if !modules_path.exists() {
-            info!("Nothing to clean-up 💪");
+            info!("💪 Nothing to clean-up.");
             return Ok(ExitCode::SUCCESS)
         }
 
         match fs::remove_dir_all(modules_path) {
             Ok(()) => {
-                info!("Clean-up done!");
+                info!("✅ Clean-up done!");
                 Ok(ExitCode::SUCCESS)
             }
             Err(err) => {

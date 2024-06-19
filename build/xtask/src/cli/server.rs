@@ -9,3 +9,9 @@ impl Command for flags::BuildServer {
         Ok(ExitCode::SUCCESS)
     }
 }
+
+impl Command for flags::CleanServer {
+    fn run(self) -> Result<ExitCode> {
+        Ok(ExitCode::SUCCESS)
+    }
+}

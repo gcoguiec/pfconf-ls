@@ -48,6 +48,10 @@ fn main() -> Result<ExitCode> {
         flags::XtaskCmd::GenerateGrammar(command) => Ok(command.run()?),
         flags::XtaskCmd::BuildServer(command) => Ok(command.run()?),
         flags::XtaskCmd::BuildVscodium(command) => Ok(command.run()?),
+
+        // Clean-up
+        flags::XtaskCmd::Clean(command) => Ok(command.run()?),
+        flags::XtaskCmd::CleanServer(command) => Ok(command.run()?),
         flags::XtaskCmd::CleanGrammar(command) => Ok(command.run()?)
     }
 }
