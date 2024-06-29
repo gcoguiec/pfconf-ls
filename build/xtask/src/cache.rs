@@ -22,6 +22,7 @@ pub(super) enum CacheError<Guard: Debug> {
     LockError(PoisonError<Guard>)
 }
 
+// @todo store tool path and version.
 pub(super) static TOOLS_FLAG_CACHE: Lazy<Mutex<DependencyFlagCache>> =
     Lazy::new(|| {
         Mutex::new(LruCache::new(

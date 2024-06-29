@@ -261,13 +261,22 @@ cfg_if::cfg_if! {
             }
         }
     } else {
+        #[derive(Debug, Error, Diagnostic)]
+        pub enum QoSError {}
+
+        #[derive(Debug, PartialEq)]
         pub(super) enum QoSClass {
             Default
         }
+
+        impl From<ThreadRole> for QoSClass {
+            fn from(_role: ThreadRole) -> Self {
+                QoSClass::Default
+            }
+        }
+
         pub(super) const HAS_THREAD_QOS: bool = false;
-
         pub(super) fn current_thread_qos_class() -> Option<QoSClass> { None }
-
-        pub(super) fn set_current_thread_qos_class() {}
+        pub(super) fn set_current_thread_qos_class(qos_class: QoSClass) -> Result<(), QoSError> { Ok(()) }
     }
 }

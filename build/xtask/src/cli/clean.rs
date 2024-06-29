@@ -7,8 +7,8 @@ use crate::cli::{
     Command
 };
 
-// Remove all project build artifacts and their local dependencies.
 impl Command for flags::Clean {
+    /// Remove all project build artifacts and their local dependencies.
     fn run(self) -> Result<ExitCode> {
         CleanGrammar.run()?;
         CleanServer.run()?;

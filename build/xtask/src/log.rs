@@ -34,8 +34,8 @@ pub enum LoggerError {
     NonUnicodeColorValue(OsString),
 
     #[error(transparent)]
-    #[diagnostic(code(pfconf_ls::log::global_logger_registration_failed))]
-    GlobalLoggerRegistrationFailed(#[from] SetLoggerError)
+    #[diagnostic(code(pfconf_ls::log::global_registration_failed))]
+    GlobalRegistrationFailed(#[from] SetLoggerError)
 }
 
 pub struct LoggerConfig {
@@ -149,7 +149,7 @@ pub fn init_logger(config: LoggerConfig) -> Result<(), LoggerError> {
         .init();
 
     if let Err(error) = tracing_log::LogTracer::init() {
-        return Err(LoggerError::GlobalLoggerRegistrationFailed(error))
+        return Err(LoggerError::GlobalRegistrationFailed(error))
     }
     Ok(())
 }

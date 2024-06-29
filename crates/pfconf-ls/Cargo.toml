@@ -32,10 +32,6 @@ features = [
 [target.'cfg(all(target_arch = "wasm32"))'.build-dependencies]
 cargo-zigbuild = { version = "0.18.4" }
 
-[target.'cfg(all(target_arch = "wasm32"))'.features]
-default = ['zigbuild']
-zigbuild = ["dep:cargo-zigbuild"]
-
 [target.'cfg(all(target_arch = "wasm32"))'.profile.release]
 lto = "fat"
 codegen-units = 1

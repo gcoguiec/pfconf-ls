@@ -14,12 +14,13 @@ use crate::{
     }
 };
 
-static PACKAGE_PATH: &str = "grammar";
+static GRAMMAR_PACKAGE_PATH: &str = "grammar";
 
-// Generates parser and scanner from the grammar definition.
 impl Command for flags::GenerateGrammar {
+    /// Generates parser and scanner from the grammar definition.
     fn run(self) -> Result<ExitCode> {
-        let package_path = from_workspace_root(PathBuf::from(PACKAGE_PATH));
+        let package_path =
+            from_workspace_root(PathBuf::from(GRAMMAR_PACKAGE_PATH));
         let manifest =
             match PackageJson::from_path(&package_path.join("package.json")) {
                 Ok(manifest) => manifest,
@@ -85,12 +86,13 @@ impl Command for flags::GenerateGrammar {
     }
 }
 
-// Cleans-up grammar project by removing the `node_modules` folder.
 impl Command for flags::CleanGrammar {
+    /// Cleans-up grammar project by removing the `node_modules` folder.
     fn run(self) -> Result<ExitCode> {
         info!("Proceeding to clean-up grammar project...");
-        let modules_path = from_workspace_root(PathBuf::from(PACKAGE_PATH))
-            .join("node_modules");
+        let modules_path =
+            from_workspace_root(PathBuf::from(GRAMMAR_PACKAGE_PATH))
+                .join("node_modules");
 
         if !modules_path.exists() {
             info!("💪 Nothing to clean-up.");

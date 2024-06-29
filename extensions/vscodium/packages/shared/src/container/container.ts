@@ -32,7 +32,7 @@ import {
  * the same service inside the graph).
  *
  * The quest for simplicity and elegance can make you build unreasonable
- * components and this one of them.
+ * components and this is one of them.
  *
  * @example
  * import { Container, ServiceToken, inject } from '@pfconf-ls/shared';
