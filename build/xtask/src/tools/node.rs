@@ -28,35 +28,39 @@ static VOLTA_FLAG_KEY: &str = "has_volta";
 static VERSION_PATTERN: &str = r"^\d+.\d+.\d+$";
 
 #[derive(Debug, Error, Diagnostic)]
-pub enum NodeError {
-    #[error("The `pnpm` package manager is not present on this system.")]
-    #[diagnostic(code(xtask::pnpm::pnpm_not_present))]
-    PnpmNotPresent,
-
-    #[error("Failed to execute `pnpm` command '{command}', {error}.")]
-    #[diagnostic(code(xtask::pnpm::pnpm_execution_failed))]
-    PnpmExecutionFailed { error: IoError, command: String },
+pub enum NodeManifestError {
+    #[error(transparent)]
+    #[diagnostic(code(xtask::node::manifest::invalid_path_error))]
+    InvalidPath(#[from] IoError),
 
     #[error("Failed to convert manifest content to UTF-8, {0}.")]
-    #[diagnostic(code(xtask::pnpm::output_processing_error))]
-    ManifestProcessingError(Utf8Error),
+    #[diagnostic(code(xtask::node::manifest::content_error))]
+    Content(Utf8Error),
 
-    #[error("Failed to parse file '{filepath}' as JSON, {error}.")]
-    #[diagnostic(code(xtask::pnpm::json_parsing_error))]
-    JSONParsingError {
-        error: SerdeJsonError,
-        filepath: PathBuf
-    },
+    #[error("Failed to parse manifest as JSON, {0}.")]
+    #[diagnostic(code(xtask::node::manifest::parsing_failed_error))]
+    ParsingFailed(SerdeJsonError)
+}
+
+#[derive(Debug, Error, Diagnostic)]
+pub enum NodeError {
+    #[error("The `pnpm` package manager is not present on this system.")]
+    #[diagnostic(code(xtask::node::pnpm_not_present_error))]
+    PnpmNotPresent,
+
+    #[error("Failed to execute `pnpm` command '{command}'. {error}")]
+    #[diagnostic(code(xtask::node::pnpm_execution_failed_error))]
+    PnpmExecutionFailed { error: IoError, command: String },
 
     #[error("Missing dependency package '{package_name}'.")]
-    #[diagnostic(code(xtask::pnpm::missing_dependency))]
+    #[diagnostic(code(xtask::node::missing_dependency_error))]
     MissingDependency { package_name: String },
 
     #[error(
         "Could not parse '{version}' version for package '{package_name}'. \
          {error}"
     )]
-    #[diagnostic(code(xtask::pnpm::unparsable_version))]
+    #[diagnostic(code(xtask::node::unparsable_version_error))]
     UnparsableVersion {
         package_name: String,
         version: String,
@@ -67,16 +71,19 @@ pub enum NodeError {
         "Version mismatch for dependency package '{package_name}', version \
          '{expected_version}' expected, '{installed_version}' installed."
     )]
-    #[diagnostic(code(xtask::pnpm::mismatched_dependency_version))]
+    #[diagnostic(code(xtask::node::mismatched_dependency_version_error))]
     MismatchedDependencyVersion {
         package_name: String,
         expected_version: String,
         installed_version: String
     },
 
-    #[error("Could not find a package manifest at path '{filepath}'. {error}")]
-    #[diagnostic(code(xtask::pnpm::invalid_package_manifest_path))]
-    InvalidPackageManifestPath { error: IoError, filepath: PathBuf }
+    #[error("An error occured when handling '{filepath}' manifest. {error}")]
+    #[diagnostic(code(xtask::node::manifest_error))]
+    Manifest {
+        error: Box<NodeManifestError>,
+        filepath: PathBuf
+    }
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -93,16 +100,16 @@ impl PackageJson {
         let reader = BufReader::new(match File::open(manifest_path) {
             Ok(file) => file,
             Err(err) => {
-                return Err(NodeError::InvalidPackageManifestPath {
-                    error: err,
+                return Err(NodeError::Manifest {
+                    error: Box::new(NodeManifestError::InvalidPath(err)),
                     filepath: manifest_path.to_path_buf()
                 })
             }
         });
         match serde_json::from_reader(reader) {
             Ok(json) => Ok(json),
-            Err(err) => Err(NodeError::JSONParsingError {
-                error: err,
+            Err(err) => Err(NodeError::Manifest {
+                error: Box::new(NodeManifestError::ParsingFailed(err)),
                 filepath: manifest_path.to_path_buf()
             })
         }
@@ -195,12 +202,17 @@ pub fn pnpm_installed_dependencies_for_package(
     trace!("Installed Dependencies Output: {:?}", output);
     let json = match str::from_utf8(&output.stdout) {
         Ok(value) => value,
-        Err(err) => return Err(NodeError::ManifestProcessingError(err))
+        Err(err) => {
+            return Err(NodeError::Manifest {
+                error: Box::new(NodeManifestError::Content(err)),
+                filepath: package_path.to_path_buf()
+            })
+        }
     };
     match serde_json::from_str(json.trim()) {
         Ok(list) => Ok(list),
-        Err(err) => Err(NodeError::JSONParsingError {
-            error: err,
+        Err(err) => Err(NodeError::Manifest {
+            error: Box::new(NodeManifestError::ParsingFailed(err)),
             filepath: package_path.to_path_buf()
         })
     }

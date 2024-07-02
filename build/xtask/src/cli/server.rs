@@ -1,7 +1,4 @@
-use std::{
-    path::PathBuf,
-    process::{ExitCode, Output}
-};
+use std::{path::PathBuf, process::ExitCode};
 
 use miette::Result;
 use tracing::info;
@@ -29,12 +26,9 @@ impl Command for flags::CleanServer {
             SERVER_CRATES_ROOT
         )))? {
             info!("Cleaning-up '{name}'.");
-            match cargo_execute(vec!["clean", "-p", &name]) {
-                Ok(_) => {}
-                Err(err) => {
-                    error!("Cleaning-up '{name}' crate did not succeed. {err}");
-                    return Ok(ExitCode::FAILURE)
-                }
+            if let Err(err) = cargo_execute(vec!["clean", "-p", &name]) {
+                error!("Cleaning-up '{name}' crate did not succeed. {err}");
+                return Ok(ExitCode::FAILURE)
             }
         }
         info!("✅ Clean-up done!");
