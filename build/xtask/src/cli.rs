@@ -7,7 +7,8 @@ pub mod flags;
 pub mod grammar;
 pub mod server;
 pub mod vscodium;
+pub mod wasi;
 
 pub trait Command {
-    fn run(self) -> Result<ExitCode>;
+    fn run(&self) -> Result<ExitCode>;
 }

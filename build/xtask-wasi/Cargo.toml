@@ -1,0 +1,46 @@
+cargo-features = ["edition2024"]
+
+[package]
+name = "xtask-wasi"
+version = "1.0.0"
+edition = "2024"
+publish = false
+authors = ["Guillaume 'Yugo' Coguiec <mail@gcoguiec.com>"]
+license = "BSD-2-Clause"
+readme = "README.md"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+flate2 = "1.0.30"
+hex = "0.4.3"
+hex-literal = "0.4.1"
+miette = { workspace = true }
+reqwest = { version = "0.12.5", features = ["blocking"] }
+sha2 = "0.10.8"
+tar = "0.4.41"
+thiserror = { workspace = true }
+tracing = { workspace = true }
+xtask-cargo = { path = "../xtask-cargo" }
+xtask-utils = { path = "../xtask-utils" }
+
+[package.metadata.wasi-sdk.x86_64-macos]
+    url = "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-23/wasi-sdk-23.0-x86_64-macos.tar.gz"
+    sha512 = "d1fefa652bb8531328b44867d685bbe652d3f73a912aef2fe8940e15408442374cc7fb428ea4dcee1dbfec2356f44616f54a58bcaed08df3d0bb0955c8fc5450"
+
+[package.metadata.wasi-sdk.x86_64-linux]
+    url = "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-23/wasi-sdk-23.0-x86_64-linux.tar.gz"
+    sha512 = "2b124d2fc64c97b26bbedd2182fb703a241e9457dd3b4c431f4815f99bdebed0edc0f4b6bbb45cc8da420d48fc36fba864a3ea589deecccab8702db647359d2c"
+
+[package.metadata.wasi-sdk.x86_64-windows]
+    url = "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-23/wasi-sdk-23.0-x86_64-windows.tar.gz"
+    sha512 = "a05e17c78a3c3ee91a777b699f194d900e490c23cfb5b097632e891fca5ca429834cd73707040b5cfeafea0df7718a6d53cefa0ec2c5fceec64f67a52cca4cf4"
+
+[package.metadata.wasi-sdk.aarch64-macos]
+    url = "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-23/wasi-sdk-23.0-arm64-macos.tar.gz"
+    sha512 = "8f90434cc80cafee7d4f558c57354318a9179817ac25289e41d3d4f55b1208167f9bdb1a04ab9e59c56b43c8524fe2c6614695aa8beced27888a7fd606e221c4"
+
+[package.metadata.wasi-sdk.aarch64-linux]
+    url = "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-23/wasi-sdk-23.0-arm64-linux.tar.gz"
+    sha512 = "266459c74309b38fbbde05414d971a34fcce50cce89716baae5d1e8945da9c251a42d98819961ef9b824cb9d1a548d4ba428c268315f61f1afdceee4ecb35416"

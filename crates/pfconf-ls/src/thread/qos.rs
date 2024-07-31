@@ -277,6 +277,6 @@ cfg_if::cfg_if! {
 
         pub(super) const HAS_THREAD_QOS: bool = false;
         pub(super) fn current_thread_qos_class() -> Option<QoSClass> { None }
-        pub(super) fn set_current_thread_qos_class(qos_class: QoSClass) -> Result<(), QoSError> { Ok(()) }
+        pub(super) fn set_current_thread_qos_class(_qos_class: QoSClass) -> Result<(), QoSError> { Ok(()) }
     }
 }

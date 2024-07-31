@@ -22,3 +22,4 @@ tracing = "0.1.40"
 tracing-log = "0.2.0"
 tracing-subscriber = { version = "0.3.18", default-features = false, features = ["fmt", "env-filter", "ansi"] }
 nu-ansi-term = "0.50.0"
+duct = "0.13.7"

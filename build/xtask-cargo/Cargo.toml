@@ -1,7 +1,7 @@
 cargo-features = ["edition2024"]
 
 [package]
-name = "xtask"
+name = "xtask-cargo"
 version = "1.0.0"
 edition = "2024"
 publish = false
@@ -9,22 +9,16 @@ authors = ["Guillaume 'Yugo' Coguiec <mail@gcoguiec.com>"]
 license = "BSD-2-Clause"
 readme = "README.md"
 
-[[bin]]
-name = "xtask"
-path = "src/bin/main.rs"
+[lib]
+path = "src/lib.rs"
 
 [dependencies]
-cfg-if = { workspace = true }
-xflags = { workspace = true }
 miette = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 tracing-log = { workspace = true }
-tracing-subscriber = { workspace = true }
-nu-ansi-term = { workspace = true }
 duct = { workspace = true }
-xtask-cache = { path = "../xtask-cache" }
-xtask-cargo = { path = "../xtask-cargo" }
-xtask-node = { path = "../xtask-node" }
-xtask-wasi = { path = "../xtask-wasi" }
+serde = { workspace = true }
+glob = "0.3.1"
+toml = "0.8.14"
 xtask-utils = { path = "../xtask-utils" }

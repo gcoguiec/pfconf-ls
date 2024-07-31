@@ -24,10 +24,6 @@ pub enum BuildEvent {
     BuildServer
 }
 
-// @todo fs watch + debounce?
-// @todo state machine rewind?
-// @todo cache?
-// &todo locked files?
 impl BuildState {
     pub fn transition(self, event: &BuildEvent) -> Result<BuildState> {
         match (self, event) {
@@ -41,8 +37,9 @@ impl BuildState {
 }
 
 impl Command for flags::BuildVscodium {
-    fn run(self) -> Result<ExitCode> {
-        info!("Building VSCodium Extension...");
+    /// Builds vsix extension for VSCodium.
+    fn run(&self) -> Result<ExitCode> {
+        info!("Building VSCodium Extension.");
         let mut state = BuildState::Idle;
         [BuildEvent::GenerateGrammar]
             .iter()

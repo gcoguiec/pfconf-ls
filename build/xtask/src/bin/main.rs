@@ -44,10 +44,19 @@ fn main() -> Result<ExitCode> {
             return Ok(ExitCode::FAILURE);
         }
     };
+
+    // @todo doesn't feel clean. 🤔
     match flags.subcommand {
         flags::XtaskCmd::GenerateGrammar(command) => Ok(command.run()?),
         flags::XtaskCmd::BuildServer(command) => Ok(command.run()?),
         flags::XtaskCmd::BuildVscodium(command) => Ok(command.run()?),
+
+        // Wasi
+        flags::XtaskCmd::Wasi(command) => match command.subcommand {
+            flags::WasiCmd::DownloadSdk(subcommand) => subcommand.run(),
+            flags::WasiCmd::UpdateSdk(subcommand) => subcommand.run(),
+            flags::WasiCmd::CleanSdk(subcommand) => subcommand.run()
+        },
 
         // Clean-up
         flags::XtaskCmd::Clean(command) => Ok(command.run()?),

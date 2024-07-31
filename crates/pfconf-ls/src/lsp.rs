@@ -61,7 +61,7 @@ pub fn run_lsp_server() -> Result<()> {
 
 pub fn loop_on_lsp_messages(
     connection: Connection,
-    params: serde_json::Value
+    _params: serde_json::Value
 ) -> Result<()> {
     for message in &connection.receiver {
         match message {

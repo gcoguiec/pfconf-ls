@@ -11,19 +11,17 @@ use thiserror::Error;
 
 static TOOLS_FLAG_CACHE_CAP: usize = 32;
 
-pub(super) type DependencyFlagCache = LruCache<&'static str, bool>;
+pub type DependencyFlagCache = LruCache<&'static str, bool>;
 
 #[derive(Debug, Error, Diagnostic)]
-pub(super) enum CacheError<Guard: Debug> {
-    #[error(
-        "Cache mutex was poisoned, or the lock had already been acquired."
-    )]
+pub enum CacheError<Guard: Debug> {
+    #[error("Cache mutex was poisoned, or the lock had already been acquired.")]
     #[diagnostic(code(xtask::cache::lock_error))]
     LockError(PoisonError<Guard>)
 }
 
 // @todo store tool path and version.
-pub(super) static TOOLS_FLAG_CACHE: Lazy<Mutex<DependencyFlagCache>> =
+pub static TOOLS_FLAG_CACHE: Lazy<Mutex<DependencyFlagCache>> =
     Lazy::new(|| {
         Mutex::new(LruCache::new(
             NonZeroUsize::new(TOOLS_FLAG_CACHE_CAP)
@@ -32,7 +30,7 @@ pub(super) static TOOLS_FLAG_CACHE: Lazy<Mutex<DependencyFlagCache>> =
     });
 
 #[allow(dead_code)]
-pub(super) fn clear_dependency_flag_cache()
+pub fn clear_dependency_flag_cache()
 -> Result<(), CacheError<MutexGuard<'static, DependencyFlagCache>>> {
     match TOOLS_FLAG_CACHE.lock() {
         Ok(mut cache) => cache.clear(),

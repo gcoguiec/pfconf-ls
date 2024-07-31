@@ -1,0 +1,3 @@
+package gcoguiec:pfconf-ls;
+
+world pfconf-ls {}
