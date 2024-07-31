@@ -15,8 +15,6 @@ describe(Extension.name, () => {
   // eslint-disable-next-line @typescript-eslint/no-extraneous-class
   class MyService {}
 
-  let subject: Extension;
-
   function buildExtension(options: ExtensionFactoryOptions = {}) {
     return new Extension({
       extensionName: 'ext',
@@ -31,7 +29,7 @@ describe(Extension.name, () => {
   }
 
   beforeEach(() => {
-    subject = buildExtension();
+    buildExtension();
   });
 
   afterEach(() => {

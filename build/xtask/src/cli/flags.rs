@@ -9,13 +9,30 @@ xflags::xflags! {
 
         /// Build configuration language server.
         cmd build-server {
-            /// Compiles server with wasm32 target.
+            /// Compiles server for wasm32-wasi target.
             optional -w, --wasm32
         }
         /// Build vscodium extension with its own embedded language server.
         cmd build-vscodium {}
+
         /// Generate parser and scanner from grammar definition.
         cmd generate-grammar {}
+
+        /// Commands related to the wasi-sdk.
+        cmd wasi {
+            /// Download and extract wasi-sdk to the vendor directory.
+            cmd download-sdk {
+                /// Keep downloaded release file even if its signature is invalid.
+                optional -k, --keep
+            }
+            /// Attempt to update wasi-sdk present in the vendor directory.
+            cmd update-sdk {
+                /// Keep downloaded release file even if its signature is invalid.
+                optional -k, --keep
+            }
+            /// Remove wasi-sdk directory and its tarball release (but not vendor directory).
+            cmd clean-sdk {}
+        }
 
         /// Remove all project build artifacts and their local dependencies.
         cmd clean {}
@@ -41,6 +58,7 @@ pub enum XtaskCmd {
     BuildServer(BuildServer),
     BuildVscodium(BuildVscodium),
     GenerateGrammar(GenerateGrammar),
+    Wasi(Wasi),
     Clean(Clean),
     CleanServer(CleanServer),
     CleanGrammar(CleanGrammar)
@@ -56,6 +74,31 @@ pub struct BuildVscodium;
 
 #[derive(Debug)]
 pub struct GenerateGrammar;
+
+#[derive(Debug)]
+pub struct Wasi {
+    pub subcommand: WasiCmd
+}
+
+#[derive(Debug)]
+pub enum WasiCmd {
+    DownloadSdk(DownloadSdk),
+    UpdateSdk(UpdateSdk),
+    CleanSdk(CleanSdk)
+}
+
+#[derive(Debug)]
+pub struct DownloadSdk {
+    pub keep: bool
+}
+
+#[derive(Debug)]
+pub struct UpdateSdk {
+    pub keep: bool
+}
+
+#[derive(Debug)]
+pub struct CleanSdk;
 
 #[derive(Debug)]
 pub struct Clean;

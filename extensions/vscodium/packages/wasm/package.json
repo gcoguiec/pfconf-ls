@@ -1,7 +1,7 @@
 {
-  "name": "@pfconf-ls/shared",
+  "name": "@pfconf-ls/wasm",
   "version": "1.0.0",
-  "description": "Shared and reusable extension components.",
+  "description": "Provides WASM/WASI API components",
   "private": true,
   "type": "module",
   "author": {
@@ -17,11 +17,5 @@
     "spec:watch": "vitest",
     "spec:cov": "vitest --coverage run",
     "typecheck": "tsc --noEmit"
-  },
-  "devDependencies": {
-    "@types/node": "^20.14.9",
-    "@types/vscode": "^1.88.1",
-    "happy-dom": "^14.12.3",
-    "vitest": "^1.6.0"
   }
 }

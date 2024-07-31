@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     fs::read_to_string,
     path::{Path, PathBuf},
     process::Output
@@ -13,15 +14,15 @@ use thiserror::Error;
 use toml::de::Error as TomlDeserializingError;
 use tracing::trace;
 
-use crate::fetch_env_or;
+use xtask_utils::fetch_env_or;
 
 static CARGO_BINARY: &str = "cargo";
 
 #[derive(Debug, Error, Diagnostic)]
 pub enum CargoManifestError {
-    #[error("Failed to open cargo manifest for {filepath}")]
+    #[error("Failed to open cargo manifest for {filepath}. {err}")]
     #[diagnostic(code(xtask::cargo::manifest::file_error))]
-    File { error: IoError, filepath: PathBuf },
+    File { err: IoError, filepath: PathBuf },
 
     #[error("Unsufficient permissions when trying to read cargo manifest.")]
     #[diagnostic(
@@ -33,21 +34,35 @@ pub enum CargoManifestError {
     )]
     UnsufficientPermission,
 
-    #[error("Failed to parse file '{filepath}' as TOML. {error}")]
+    #[error("Failed to parse file '{filepath}' as TOML. {err}")]
     #[diagnostic(code(xtask::cargo::manifest::parsing_failed_error))]
     ParsingFailed {
-        error: TomlDeserializingError,
+        err: TomlDeserializingError,
         filepath: PathBuf
     }
+}
+
+#[derive(Debug, Deserialize, Clone)]
+#[serde(rename_all = "kebab-case")]
+pub struct WasiReleaseEntry {
+    pub url: String,
+    pub sha512: String
+}
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub struct PackageMetadata {
+    pub wasi_sdk: Option<HashMap<String, WasiReleaseEntry>>
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct CargoManifestPackage {
-    pub name: String
+    pub name: String,
+    pub metadata: Option<PackageMetadata>
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Default, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct CargoManifest {
     pub package: Option<CargoManifestPackage>
@@ -59,7 +74,7 @@ impl CargoManifest {
             Ok(content) => content,
             Err(err) => {
                 return Err(CargoManifestError::File {
-                    error: err,
+                    err,
                     filepath: manifest_path.to_path_buf()
                 })
             }
@@ -68,7 +83,7 @@ impl CargoManifest {
         match toml::from_str(&manifest_content) {
             Ok(toml) => Ok(toml),
             Err(err) => Err(CargoManifestError::ParsingFailed {
-                error: err,
+                err,
                 filepath: manifest_path.to_path_buf()
             })
         }
@@ -77,14 +92,14 @@ impl CargoManifest {
 
 #[derive(Debug, Error, Diagnostic)]
 pub enum CargoError {
-    #[error("Failed to execute `cargo` command '{command}'. {error}")]
+    #[error("Failed to execute `cargo` command '{command}'. {err}")]
     #[diagnostic(code(xtask::cargo::execution_failed_error))]
-    ExecutionFailed { error: IoError, command: String },
+    ExecutionFailed { err: IoError, command: String },
 
-    #[error("An error occured when handling '{filepath}' manifest. {error}")]
+    #[error("An error occured when handling '{filepath}' manifest. {err}")]
     #[diagnostic(code(xtask::cargo::manifest_error))]
     Manifest {
-        error: Box<CargoManifestError>,
+        err: Box<CargoManifestError>,
         filepath: PathBuf
     }
 }
@@ -95,27 +110,23 @@ pub fn cargo_execute(args: Vec<&str>) -> Result<Output, CargoError> {
     trace!("Command: '{command}'");
     match cmd(fetch_env_or("CARGO", CARGO_BINARY), args).run() {
         Ok(output) => Ok(output),
-        Err(err) => Err(CargoError::ExecutionFailed {
-            error: err,
-            command
-        })
+        Err(err) => Err(CargoError::ExecutionFailed { err, command })
     }
 }
 
 /// Returns detected crate list at provided root.
 pub fn cargo_crates_for_root(root: &Path) -> Result<Vec<String>, CargoError> {
-    let glob_pattern = root
+    let glob_pattern = root.join("*/cargo.toml");
+    glob(glob_pattern
         .to_str()
-        .expect("Expected crates root to be a valid UTF-8 string."); // We panic because this is likely a developer error.
-
-    glob(glob_pattern)
+        .expect("Expected crates root to be a valid UTF-8 string.")) // We panic because this is likely a developer error.
         .expect("Invalid glob pattern used as root.") // Same panic remark as above.
         .map(|matched_file| {
             let filepath = match matched_file {
                 Ok(filepath) => filepath,
                 Err(err) => {
                     return Err(CargoError::Manifest {
-                        error: Box::new(CargoManifestError::UnsufficientPermission),
+                        err: Box::new(CargoManifestError::UnsufficientPermission),
                         filepath: err.path().to_path_buf()
                     })
                 }
@@ -126,7 +137,7 @@ pub fn cargo_crates_for_root(root: &Path) -> Result<Vec<String>, CargoError> {
                     .expect("Package definition should provide a name.") // Cargo is checking this for us first. Should not happen.
                     .name),
                 Err(err) => Err(CargoError::Manifest {
-                    error: Box::new(err),
+                    err: Box::new(err),
                     filepath
                 })
             }

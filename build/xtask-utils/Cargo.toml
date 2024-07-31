@@ -1,0 +1,13 @@
+cargo-features = ["edition2024"]
+
+[package]
+name = "xtask-utils"
+version = "1.0.0"
+edition = "2024"
+publish = false
+authors = ["Guillaume 'Yugo' Coguiec <mail@gcoguiec.com>"]
+license = "BSD-2-Clause"
+readme = "README.md"
+
+[lib]
+path = "src/lib.rs"

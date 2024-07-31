@@ -17,7 +17,8 @@ use std::io::Error as IoError;
 use thiserror::Error;
 use tracing::{debug, error, info, trace};
 
-use crate::{cache::TOOLS_FLAG_CACHE, fetch_env_or};
+use xtask_cache::TOOLS_FLAG_CACHE;
+use xtask_utils::fetch_env_or;
 
 static PNPM_DEFAULT_BINARY: &str = "pnpm";
 static PNPM_FLAG_KEY: &str = "has_pnpm";
@@ -48,9 +49,9 @@ pub enum NodeError {
     #[diagnostic(code(xtask::node::pnpm_not_present_error))]
     PnpmNotPresent,
 
-    #[error("Failed to execute `pnpm` command '{command}'. {error}")]
+    #[error("Failed to execute `pnpm` command '{command}'. {err}")]
     #[diagnostic(code(xtask::node::pnpm_execution_failed_error))]
-    PnpmExecutionFailed { error: IoError, command: String },
+    PnpmExecutionFailed { err: IoError, command: String },
 
     #[error("Missing dependency package '{package_name}'.")]
     #[diagnostic(code(xtask::node::missing_dependency_error))]
@@ -58,13 +59,13 @@ pub enum NodeError {
 
     #[error(
         "Could not parse '{version}' version for package '{package_name}'. \
-         {error}"
+         {err}"
     )]
     #[diagnostic(code(xtask::node::unparsable_version_error))]
     UnparsableVersion {
         package_name: String,
         version: String,
-        error: SemverVersion
+        err: SemverVersion
     },
 
     #[error(
@@ -78,10 +79,10 @@ pub enum NodeError {
         installed_version: String
     },
 
-    #[error("An error occured when handling '{filepath}' manifest. {error}")]
+    #[error("An error occured when handling '{filepath}' manifest. {err}")]
     #[diagnostic(code(xtask::node::manifest_error))]
     Manifest {
-        error: Box<NodeManifestError>,
+        err: Box<NodeManifestError>,
         filepath: PathBuf
     }
 }
@@ -101,7 +102,7 @@ impl PackageJson {
             Ok(file) => file,
             Err(err) => {
                 return Err(NodeError::Manifest {
-                    error: Box::new(NodeManifestError::InvalidPath(err)),
+                    err: Box::new(NodeManifestError::InvalidPath(err)),
                     filepath: manifest_path.to_path_buf()
                 })
             }
@@ -109,7 +110,7 @@ impl PackageJson {
         match serde_json::from_reader(reader) {
             Ok(json) => Ok(json),
             Err(err) => Err(NodeError::Manifest {
-                error: Box::new(NodeManifestError::ParsingFailed(err)),
+                err: Box::new(NodeManifestError::ParsingFailed(err)),
                 filepath: manifest_path.to_path_buf()
             })
         }
@@ -166,10 +167,7 @@ pub fn pnpm_execute(args: Vec<&str>) -> Result<Output, NodeError> {
         Ok(output) => Ok(output),
         Err(err) => {
             debug!("Underlying I/O error: {err}");
-            Err(NodeError::PnpmExecutionFailed {
-                error: err,
-                command
-            })
+            Err(NodeError::PnpmExecutionFailed { err, command })
         }
     }
 }
@@ -204,7 +202,7 @@ pub fn pnpm_installed_dependencies_for_package(
         Ok(value) => value,
         Err(err) => {
             return Err(NodeError::Manifest {
-                error: Box::new(NodeManifestError::Content(err)),
+                err: Box::new(NodeManifestError::Content(err)),
                 filepath: package_path.to_path_buf()
             })
         }
@@ -212,13 +210,13 @@ pub fn pnpm_installed_dependencies_for_package(
     match serde_json::from_str(json.trim()) {
         Ok(list) => Ok(list),
         Err(err) => Err(NodeError::Manifest {
-            error: Box::new(NodeManifestError::ParsingFailed(err)),
+            err: Box::new(NodeManifestError::ParsingFailed(err)),
             filepath: package_path.to_path_buf()
         })
     }
 }
 
-/// Check if package dependencies are installed properly.
+/// Checks if package dependencies are installed properly.
 pub fn pnpm_ensure_dependencies_for_package(
     package_path: &Path
 ) -> Result<(), NodeError> {
@@ -251,7 +249,7 @@ pub fn pnpm_ensure_dependencies_for_package(
     Ok(())
 }
 
-/// Check if the designated dependency is installed and verify if its version satisfies manifest requirements.
+/// Checks if the designated dependency is installed and verify if its version satisfies manifest requirements.
 pub fn pnpm_ensure_satisfied_dependency_for_package(
     package_name: String,
     expected_version: String,
@@ -276,7 +274,7 @@ pub fn pnpm_ensure_satisfied_dependency_for_package(
             return Err(NodeError::UnparsableVersion {
                 package_name,
                 version: expected_version,
-                error: err
+                err
             })
         }
     };
@@ -286,7 +284,7 @@ pub fn pnpm_ensure_satisfied_dependency_for_package(
             return Err(NodeError::UnparsableVersion {
                 package_name,
                 version: installed_version,
-                error: err
+                err
             })
         }
     };
@@ -300,7 +298,7 @@ pub fn pnpm_ensure_satisfied_dependency_for_package(
     Ok(())
 }
 
-/// Install specific package dependencies (if necessary).
+/// Installs specific package dependencies (if necessary).
 pub fn pnpm_install_dependencies_for_package(
     package_path: &PathBuf
 ) -> Result<(), NodeError> {
