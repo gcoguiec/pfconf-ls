@@ -96,7 +96,7 @@ pub enum CargoError {
     #[diagnostic(code(xtask::cargo::execution_failed_error))]
     ExecutionFailed { err: IoError, command: String },
 
-    #[error("An error occured when handling '{filepath}' manifest. {err}")]
+    #[error("An error occurred when handling '{filepath}' manifest. {err}")]
     #[diagnostic(code(xtask::cargo::manifest_error))]
     Manifest {
         err: Box<CargoManifestError>,

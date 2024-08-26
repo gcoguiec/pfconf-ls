@@ -10,8 +10,9 @@ xflags::xflags! {
         /// Build configuration language server.
         cmd build-server {
             /// Compiles server for wasm32-wasi target.
-            optional -w, --wasm32
+            optional -w, --wasi
         }
+
         /// Build vscodium extension with its own embedded language server.
         cmd build-vscodium {}
 
@@ -66,7 +67,7 @@ pub enum XtaskCmd {
 
 #[derive(Debug)]
 pub struct BuildServer {
-    pub wasm32: bool
+    pub wasi: bool
 }
 
 #[derive(Debug)]

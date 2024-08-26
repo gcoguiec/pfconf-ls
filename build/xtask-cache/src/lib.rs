@@ -1,6 +1,7 @@
 use std::{
     fmt::Debug,
     num::NonZeroUsize,
+    path::PathBuf,
     sync::{Mutex, MutexGuard, PoisonError}
 };
 
@@ -9,9 +10,16 @@ use miette::{Diagnostic, Result};
 use once_cell::sync::Lazy;
 use thiserror::Error;
 
-static TOOLS_FLAG_CACHE_CAP: usize = 32;
+static TOOLS_CACHE_CAP: usize = 32;
 
-pub type DependencyFlagCache = LruCache<&'static str, bool>;
+#[derive(Debug)]
+pub struct ToolEntry {
+    pub present: bool,
+    pub path: Option<PathBuf>,
+    pub version: Option<String>
+}
+
+pub type DependencyFlagCache = LruCache<&'static str, ToolEntry>;
 
 #[derive(Debug, Error, Diagnostic)]
 pub enum CacheError<Guard: Debug> {
@@ -21,18 +29,17 @@ pub enum CacheError<Guard: Debug> {
 }
 
 // @todo store tool path and version.
-pub static TOOLS_FLAG_CACHE: Lazy<Mutex<DependencyFlagCache>> =
-    Lazy::new(|| {
-        Mutex::new(LruCache::new(
-            NonZeroUsize::new(TOOLS_FLAG_CACHE_CAP)
-                .expect("Invalid tools flag cache capacity")
-        ))
-    });
+pub static TOOLS_CACHE: Lazy<Mutex<DependencyFlagCache>> = Lazy::new(|| {
+    Mutex::new(LruCache::new(
+        NonZeroUsize::new(TOOLS_CACHE_CAP)
+            .expect("Invalid tools flag cache capacity")
+    ))
+});
 
 #[allow(dead_code)]
 pub fn clear_dependency_flag_cache()
 -> Result<(), CacheError<MutexGuard<'static, DependencyFlagCache>>> {
-    match TOOLS_FLAG_CACHE.lock() {
+    match TOOLS_CACHE.lock() {
         Ok(mut cache) => cache.clear(),
         Err(err) => return Err(CacheError::LockError(err))
     }

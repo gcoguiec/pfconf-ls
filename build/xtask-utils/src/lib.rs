@@ -5,6 +5,11 @@ use std::{
     path::{Path, PathBuf}
 };
 
+use duct::cmd;
+use miette::Result;
+
+pub mod cli;
+
 pub type TargetDouble = (&'static str, &'static str);
 
 /// Fetches environment variable or a default value otherwise.
@@ -29,4 +34,13 @@ pub fn create_directory_path(dir_path: &PathBuf) -> Result<(), IoError> {
 /// Returns system target double `(arch,os)``.
 pub fn get_target_double() -> TargetDouble {
     (env::consts::ARCH, env::consts::OS)
+}
+
+/// Returns rust toolchain sysroot path.
+pub fn get_sysroot_path() -> Result<PathBuf, IoError> {
+    Ok(PathBuf::from(
+        cmd!(fetch_env_or("RUSTC_PATH", "rustc"), "--print", "sysroot")
+            .read()?
+            .trim()
+    ))
 }

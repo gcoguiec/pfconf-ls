@@ -26,5 +26,6 @@ duct = { workspace = true }
 xtask-cache = { path = "../xtask-cache" }
 xtask-cargo = { path = "../xtask-cargo" }
 xtask-node = { path = "../xtask-node" }
+xtask-rustup = { path = "../xtask-rustup" }
 xtask-wasi = { path = "../xtask-wasi" }
 xtask-utils = { path = "../xtask-utils" }

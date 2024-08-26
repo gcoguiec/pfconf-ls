@@ -15,7 +15,7 @@ use crate::cli::{flags, Command};
 impl Command for flags::DownloadSdk {
     /// Downloads wasi-sdk release tarball and decompress it to the vendor directory.
     fn run(&self) -> Result<ExitCode> {
-        let sdk_env = WasiSdkEnv::from_env();
+        let sdk_env = WasiSdkEnv::from_local_env();
         if sdk_env.is_ready_to_use() {
             info!("wasi-sdk is already downloaded and ready to be used.");
             return Ok(ExitCode::SUCCESS)
@@ -82,7 +82,7 @@ impl Command for flags::DownloadSdk {
         info!("✅ Extracted.");
         if let Err(err) = create_version_file_for_env(&sdk_env, &version_name) {
             // Creating version file is not critical, we allow it to fail.
-            warn!("Could not create wasi-sdk version file. {err}");
+            error!("Could not create wasi-sdk version file. {err}");
         }
         Ok(if sdk_env.is_ready_to_use() {
             info!("wasi-sdk ({version_name}) was installed.");
@@ -99,7 +99,7 @@ impl Command for flags::CleanSdk {
     fn run(&self) -> Result<ExitCode> {
         info!("Cleaning-up the wasi-sdk artifacts.");
         let mut exit_code = ExitCode::SUCCESS;
-        let sdk_env = WasiSdkEnv::from_env();
+        let sdk_env = WasiSdkEnv::from_local_env();
         [
             sdk_env.get_version_file_path(),
             sdk_env.get_release_tarball_path(),

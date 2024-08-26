@@ -45,7 +45,6 @@ fn main() -> Result<ExitCode> {
         }
     };
 
-    // @todo doesn't feel clean. 🤔
     match flags.subcommand {
         flags::XtaskCmd::GenerateGrammar(command) => Ok(command.run()?),
         flags::XtaskCmd::BuildServer(command) => Ok(command.run()?),

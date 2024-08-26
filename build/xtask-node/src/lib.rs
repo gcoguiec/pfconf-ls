@@ -17,7 +17,7 @@ use std::io::Error as IoError;
 use thiserror::Error;
 use tracing::{debug, error, info, trace};
 
-use xtask_cache::TOOLS_FLAG_CACHE;
+use xtask_cache::{ToolEntry, TOOLS_CACHE};
 use xtask_utils::fetch_env_or;
 
 static PNPM_DEFAULT_BINARY: &str = "pnpm";
@@ -79,7 +79,7 @@ pub enum NodeError {
         installed_version: String
     },
 
-    #[error("An error occured when handling '{filepath}' manifest. {err}")]
+    #[error("An error occurred when handling '{filepath}' manifest. {err}")]
     #[diagnostic(code(xtask::node::manifest_error))]
     Manifest {
         err: Box<NodeManifestError>,
@@ -130,24 +130,33 @@ impl PackageJson {
 
 /// Checks if the system has pnpm installed.
 pub fn is_pnpm_installed() -> bool {
-    let mut cache = TOOLS_FLAG_CACHE
-        .lock()
-        .expect("Could not lock the tools flag cache.");
-    if let Some(option) = cache.get(PNPM_FLAG_KEY) {
-        return *option;
+    let mut cache =
+        TOOLS_CACHE.lock().expect("Could not lock the tools cache.");
+    if let Some(tool_entry) = cache.get(PNPM_FLAG_KEY) {
+        return tool_entry.present;
     }
-    match cmd!(fetch_env_or("PNPM", PNPM_DEFAULT_BINARY), "--version").read() {
+    // @todo PNPM => PNPM_PATH, remove DEFAULT_BINARY
+    let pnpm_path = fetch_env_or("PNPM", PNPM_DEFAULT_BINARY);
+    match cmd!(&pnpm_path, "--version").read() {
         Ok(stdout) => {
             trace!("Found `pnpm` version {stdout}.");
             let flag = Regex::new(VERSION_PATTERN)
                 .expect("Invalid version regex pattern.")
                 .is_match(&stdout);
-            cache.put(PNPM_FLAG_KEY, flag);
+            cache.put(PNPM_FLAG_KEY, ToolEntry {
+                present: true,
+                path: Some(PathBuf::from(pnpm_path)),
+                version: Some(stdout)
+            });
             flag
         }
         Err(err) => {
             debug!("Underlying error: {err}");
-            cache.put(PNPM_FLAG_KEY, false);
+            cache.put(PNPM_FLAG_KEY, ToolEntry {
+                present: false,
+                path: None,
+                version: None
+            });
             false
         }
     }
@@ -312,7 +321,7 @@ pub fn pnpm_install_dependencies_for_package(
         }
         Err(err) => {
             error!(
-                "An error occured when trying to install dependencies: {err}"
+                "An error occurred when trying to install dependencies: {err}"
             );
         }
     };
@@ -340,25 +349,32 @@ pub fn pnpm_install_dependencies_for_package(
 
 /// Checks if the system has volta installed.
 pub fn is_volta_installed() -> bool {
-    let mut cache = TOOLS_FLAG_CACHE
-        .lock()
-        .expect("Could not lock the tools flag cache.");
-    if let Some(option) = cache.get(VOLTA_FLAG_KEY) {
-        return *option;
+    let mut cache =
+        TOOLS_CACHE.lock().expect("Could not lock the tools cache.");
+    if let Some(tool_entry) = cache.get(VOLTA_FLAG_KEY) {
+        return tool_entry.present;
     }
-    match cmd!(fetch_env_or("VOLTA", VOLTA_DEFAULT_BINARY), "--version").read()
-    {
+    let volta_path = fetch_env_or("VOLTA", VOLTA_DEFAULT_BINARY);
+    match cmd!(&volta_path, "--version").read() {
         Ok(stdout) => {
             trace!("Found `volta` version {stdout}.");
             let flag = Regex::new(VERSION_PATTERN)
                 .expect("Invalid version regex pattern.")
                 .is_match(&stdout);
-            cache.put(VOLTA_FLAG_KEY, flag);
+            cache.put(VOLTA_FLAG_KEY, ToolEntry {
+                present: true,
+                path: Some(PathBuf::from(volta_path)),
+                version: Some(stdout)
+            });
             flag
         }
         Err(err) => {
             debug!("Underlying error: {err}");
-            cache.put(VOLTA_FLAG_KEY, false);
+            cache.put(VOLTA_FLAG_KEY, ToolEntry {
+                present: true,
+                path: None,
+                version: None
+            });
             false
         }
     }

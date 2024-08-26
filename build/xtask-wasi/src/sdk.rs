@@ -47,7 +47,8 @@ pub enum WasiSdkError {
     UnsupportedSystem(String),
 
     #[error(
-        "An error occured when trying to read `xtask-wasi` cargo manifest: {0}"
+        "An error occurred when trying to read `xtask-wasi` cargo manifest: \
+         {0}"
     )]
     #[diagnostic(code(xtask::wasi::sdk::manifest_error))]
     Manifest(CargoManifestError)
@@ -65,16 +66,16 @@ pub enum WasiSdkDownloadError {
     )]
     File { err: IoError, filepath: PathBuf },
 
-    #[error("An error occured when downloading wasi-sdk release. {0}")]
+    #[error("An error occurred when downloading wasi-sdk release. {0}")]
     #[diagnostic(code(xtask::wasi::sdk::download::request_error))]
     Request(ReqwestError),
 
-    #[error("An error occured when writing content to tarball file. {0}")]
+    #[error("An error occurred when writing content to tarball file. {0}")]
     #[diagnostic(code(xtask::wasi::sdk::download::copy_error))]
     Copy(ReqwestError),
 
     #[error(
-        "Invalid release SHA512 signature. expected '{expected}' got \
+        "Invalid release SHA512 signature. Expected '{expected}' got \
          '{actual}'."
     )]
     SignatureMismatch {
@@ -103,16 +104,16 @@ pub enum WasiSdkExtractError {
     )]
     File { err: IoError, filepath: PathBuf },
 
-    #[error("An error occured when trying to access archive content. {0}")]
+    #[error("An error occurred when trying to access archive content. {0}")]
     #[diagnostic(code(xtask::wasi::sdk::extract::archive_error))]
     Archive(IoError),
 
-    #[error("An error occured when trying to unpack archive item. {0}")]
+    #[error("An error occurred when trying to unpack archive item. {0}")]
     #[diagnostic(code(xtask::wasi::sdk::extract::unpack_error))]
     Unpack(IoError)
 }
 
-/// Holds local environment for a wasi-sdk installation.
+/// Holds environment variables for a wasi-sdk installation.
 #[derive(Debug)]
 pub struct WasiSdkEnv {
     strict: bool,
@@ -125,7 +126,8 @@ pub struct WasiSdkEnv {
 }
 
 impl WasiSdkEnv {
-    /// Creates a new wasi-sdk environment initialized from env variables (or default values).
+    /// Creates a new wasi-sdk environment initialized from local environment
+    /// variables (or default values).
     ///
     /// # Environment Variables
     ///
@@ -142,8 +144,8 @@ impl WasiSdkEnv {
     ///
     /// # Panics
     ///
-    /// This function will panic if target directoru doesn't have a parent directory.
-    pub fn from_env() -> Self {
+    /// This function will panic if target directory doesn't have a parent directory.
+    pub fn from_local_env() -> Self {
         let target_dir_path = from_workspace_root(PathBuf::from(fetch_env_or(
             "WASI_SDK_TARGET_DIR",
             "lib/wasi-sdk"
@@ -256,8 +258,7 @@ impl WasiSdkEnv {
 
     /// Checks if SDK is properly extracted and ready to use.
     pub fn is_ready_to_use(&self) -> bool {
-        self.target_dir_path.join("bin/clang").exists() &&
-            self.target_dir_path.join("bin/clang++").exists()
+        self.target_dir_path.join("bin/clang").exists()
     }
 
     /// Creates wasi-sdk target directory if it doesn't already exist.
@@ -289,7 +290,7 @@ impl WasiSdkEnv {
 ///
 /// # Panics
 ///
-/// This function will panic if TOML manifest is missing the data.
+/// This function will panic if TOML manifest is missing the metadata.
 pub fn get_release_entry_for_env(
     env: &WasiSdkEnv
 ) -> Result<WasiReleaseEntry, WasiSdkError> {
