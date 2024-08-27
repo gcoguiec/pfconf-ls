@@ -17,7 +17,7 @@ use std::io::Error as IoError;
 use thiserror::Error;
 use tracing::{debug, error, info, trace};
 
-use xtask_utils::{fetch_env_or, VERSION_PATTERN};
+use xtask_utils::{fetch_env_or_else, VERSION_PATTERN};
 
 #[derive(Debug, Error, Diagnostic)]
 pub enum NodeManifestError {
@@ -78,40 +78,35 @@ pub enum NodeError {
     }
 }
 
-#[derive(Debug, Error, Diagnostic)]
-pub enum NodeEnvError<'n> {
-    #[error("Couldn't find {0} location.")]
-    #[diagnostic(
-        code(xtask::node::env::unlocatable_error),
-        help("Running `which {0}` can help diagnose this issue.")
-    )]
-    Unlocatable(&'n str)
-}
-
+/// Holds variables for local Node environment.
 #[derive(Debug)]
 pub struct NodeEnv {
     pnpm_path: PathBuf,
     volta_path: PathBuf
 }
 
-impl<'n> NodeEnv {
-    /// Creates a new node environment
-    pub fn from_local_env() -> Result<Self, NodeEnvError<'n>> {
-        let pnpm_location = match cmd!("which", "pnpm").read() {
-            Ok(stdout) => stdout.trim().to_string(),
-            Err(_) => return Err(NodeEnvError::Unlocatable("pnpm"))
-        };
-        let volta_location = match cmd!("which", "volta").read() {
-            Ok(stdout) => stdout.trim().to_string(),
-            Err(_) => return Err(NodeEnvError::Unlocatable("volta"))
-        };
-        Ok(Self {
-            pnpm_path: PathBuf::from(fetch_env_or("PNPM_PATH", &pnpm_location)),
-            volta_path: PathBuf::from(fetch_env_or(
-                "VOLTA_PATH",
-                &volta_location
-            ))
-        })
+impl NodeEnv {
+    /// Creates a new Node environment initialized from local environment
+    ///
+    /// # Environment Variables
+    ///
+    /// - `XTASK_PNPM_PATH`: Configure an alternative path to pnpm.
+    /// - `XTASK_VOLTA_PATH`: Setup a different path to the volta utility.
+    pub fn from_local_env() -> Self {
+        Self {
+            pnpm_path: PathBuf::from(fetch_env_or_else("PNPM_PATH", |_| {
+                match cmd!("which", "pnpm").read() {
+                    Ok(stdout) => stdout.trim().to_string(),
+                    Err(_) => String::from("pnpm")
+                }
+            })),
+            volta_path: PathBuf::from(fetch_env_or_else("VOLTA_PATH", |_| {
+                match cmd!("which", "volta").read() {
+                    Ok(stdout) => stdout.trim().to_string(),
+                    Err(_) => String::from("volta")
+                }
+            }))
+        }
     }
 
     /// Checks if the system has pnpm installed.
@@ -121,7 +116,7 @@ impl<'n> NodeEnv {
                 .expect("Invalid version regex pattern.")
                 .is_match(&stdout),
             Err(err) => {
-                debug!("Underlying error: {err}");
+                debug!(target: "xtask::node::pnpm::is_installed", err = ?err);
                 false
             }
         }
@@ -138,6 +133,7 @@ pub struct PackageJson {
 }
 
 impl PackageJson {
+    /// Builds a PackageJson instance from specified path.
     pub fn from_path(manifest_path: &Path) -> Result<Self, NodeError> {
         let reader = BufReader::new(match File::open(manifest_path) {
             Ok(file) => file,
@@ -157,6 +153,7 @@ impl PackageJson {
         }
     }
 
+    /// Iterates over all package dependencies.
     pub fn iter(
         &self
     ) -> impl Iterator<Item = &Option<HashMap<String, Value>>> {
@@ -174,8 +171,8 @@ pub fn pnpm_execute(
     env: &NodeEnv,
     args: Vec<&str>
 ) -> Result<Output, NodeError> {
-    let command = args.join(" ");
-    trace!("Command: '{command}'");
+    let command = format!("{} {}", env.pnpm_path.display(), args.join(" "));
+    trace!(target: "xtask::node::pnpm_execute", command = ?command);
     match cmd(&env.pnpm_path, args).stdout_capture().run() {
         Ok(output) => Ok(output),
         Err(err) => {
@@ -185,7 +182,7 @@ pub fn pnpm_execute(
     }
 }
 
-/// Executes a `pnpm` task in a package context.
+/// Executes a pnpm task in a package context.
 pub fn pnpm_execute_for_package(
     env: &NodeEnv,
     package_path: &Path,
@@ -213,7 +210,7 @@ pub fn pnpm_installed_dependencies_for_package(
     let output = pnpm_execute_for_package(env, package_path, vec![
         "list", "--depth", "0", "--json",
     ])?;
-    trace!("Installed Dependencies Output: {:?}", output);
+    trace!(target: "xtask::node::pnpm::installed_dependencies", output = ?output);
     let json = match str::from_utf8(&output.stdout) {
         Ok(value) => value,
         Err(err) => {
@@ -368,7 +365,7 @@ pub fn is_volta_installed(env: &NodeEnv) -> bool {
                 .is_match(stdout.trim())
         }
         Err(err) => {
-            debug!("Underlying error: {err}");
+            debug!(target: "xtask::node::volta::is_installed", err = ?err);
             false
         }
     }

@@ -12,11 +12,8 @@ use serde::Deserialize;
 use std::io::Error as IoError;
 use thiserror::Error;
 use toml::de::Error as TomlDeserializingError;
-use tracing::trace;
 
-use xtask_utils::fetch_env_or;
-
-static CARGO_BINARY: &str = "cargo";
+use xtask_utils::fetch_env_or_else;
 
 #[derive(Debug, Error, Diagnostic)]
 pub enum CargoManifestError {
@@ -92,9 +89,9 @@ impl CargoManifest {
 
 #[derive(Debug, Error, Diagnostic)]
 pub enum CargoError {
-    #[error("Failed to execute `cargo` command '{command}'. {err}")]
+    #[error("Failed to execute `cargo` command. {err}")]
     #[diagnostic(code(xtask::cargo::execution_failed_error))]
-    ExecutionFailed { err: IoError, command: String },
+    ExecutionFailed { err: IoError },
 
     #[error("An error occurred when handling '{filepath}' manifest. {err}")]
     #[diagnostic(code(xtask::cargo::manifest_error))]
@@ -106,18 +103,25 @@ pub enum CargoError {
 
 /// Executes cargo with provided arguments.
 pub fn cargo_execute(args: Vec<&str>) -> Result<Output, CargoError> {
-    let command = args.join(" ");
-    trace!("Command: '{command}'");
-    match cmd(fetch_env_or("CARGO", CARGO_BINARY), args).run() {
+    match cmd(
+        fetch_env_or_else("CARGO_PATH", |_| {
+            match cmd!("which", "cargo").read() {
+                Ok(stdout) => stdout.trim().to_string(),
+                Err(_) => String::from("cargo")
+            }
+        }),
+        args
+    )
+    .run()
+    {
         Ok(output) => Ok(output),
-        Err(err) => Err(CargoError::ExecutionFailed { err, command })
+        Err(err) => Err(CargoError::ExecutionFailed { err })
     }
 }
 
 /// Returns detected crate list at provided root.
 pub fn cargo_crates_for_root(root: &Path) -> Result<Vec<String>, CargoError> {
-    let glob_pattern = root.join("*/cargo.toml");
-    glob(glob_pattern
+    glob(root.join("*/cargo.toml")
         .to_str()
         .expect("Expected crates root to be a valid UTF-8 string.")) // We panic because this is likely a developer error.
         .expect("Invalid glob pattern used as root.") // Same panic remark as above.

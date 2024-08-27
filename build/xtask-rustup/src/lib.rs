@@ -3,7 +3,7 @@ use miette::Diagnostic;
 use std::{io::Error as IoError, path::PathBuf};
 use thiserror::Error;
 use tracing::debug;
-use xtask_utils::{fetch_env_or, get_sysroot_path};
+use xtask_utils::{fetch_env_or_else, get_sysroot_path};
 
 #[derive(Debug, Error, Diagnostic)]
 pub enum RustupEnvError {
@@ -40,14 +40,13 @@ impl RustupEnv {
     /// Creates a new rustup environment initialized from local environment
     /// variables (or defaults).
     pub fn from_local_env() -> Result<Self, RustupEnvError> {
-        let rustup_location = match cmd!("which", "rustup").read() {
-            Ok(stdout) => stdout.trim().to_string(),
-            Err(_) => return Err(RustupEnvError::Unlocatable)
-        };
         Ok(Self {
-            rustup_path: PathBuf::from(fetch_env_or(
+            rustup_path: PathBuf::from(fetch_env_or_else(
                 "RUSTUP_PATH",
-                &rustup_location
+                |_| match cmd!("which", "rustup").read() {
+                    Ok(stdout) => stdout.trim().to_string(),
+                    Err(_) => String::from("rustup")
+                }
             )),
             sysroot_path: match get_sysroot_path() {
                 Ok(path) => path,

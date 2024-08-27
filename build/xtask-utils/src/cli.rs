@@ -9,7 +9,7 @@ use nu_ansi_term::{AnsiGenericString, Color};
 use thiserror::Error;
 
 #[derive(Debug, Error, Diagnostic)]
-pub enum AnswerError<'question> {
+pub enum AnswerError<'q> {
     #[error(
         "'{current_answer}' isn't a valid answer. Available answers are: \
          {available_answers}."
@@ -17,7 +17,7 @@ pub enum AnswerError<'question> {
     #[diagnostic(code(xtask::utils::cli::answer::invalid_error))]
     Invalid {
         current_answer: String,
-        available_answers: &'question String
+        available_answers: &'q String
     }
 }
 

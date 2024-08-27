@@ -31,7 +31,7 @@ impl Command for flags::GenerateGrammar {
                 }
             };
         // @todo match
-        let node_env = NodeEnv::from_local_env()?;
+        let node_env = NodeEnv::from_local_env();
         // We check if `volta` is available, if not we warn the developer about it.
         if manifest.volta.is_some() && !is_volta_installed(&node_env) {
             let volta_config = manifest.volta.expect(

@@ -1,5 +1,5 @@
 use std::{
-    env,
+    env::{self, VarError},
     fs,
     io::Error as IoError,
     path::{Path, PathBuf}
@@ -17,6 +17,14 @@ pub type TargetDouble = (&'static str, &'static str);
 /// Fetches environment variable or a default value otherwise.
 pub fn fetch_env_or(key: &str, otherwise: &str) -> String {
     env::var(format!("XTASK_{key}")).unwrap_or(String::from(otherwise))
+}
+
+/// Fetches environment variable or computes its default value from a closure.
+pub fn fetch_env_or_else<F: FnOnce(VarError) -> String>(
+    key: &str,
+    otherwise: F
+) -> String {
+    env::var(format!("XTASK_{key}")).unwrap_or_else(otherwise)
 }
 
 /// Returns a path buffer beginning at workspace root.
