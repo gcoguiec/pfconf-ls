@@ -46,8 +46,17 @@ fn main() -> Result<ExitCode> {
     };
 
     match flags.subcommand {
-        flags::XtaskCmd::GenerateGrammar(command) => Ok(command.run()?),
+        flags::XtaskCmd::Mrproper(command) => Ok(command.run()?),
+
+        // Server
         flags::XtaskCmd::BuildServer(command) => Ok(command.run()?),
+        flags::XtaskCmd::CleanServer(command) => Ok(command.run()?),
+
+        // Grammar
+        flags::XtaskCmd::GenerateGrammar(command) => Ok(command.run()?),
+        flags::XtaskCmd::CleanGrammar(command) => Ok(command.run()?),
+
+        // Vscodium
         flags::XtaskCmd::BuildVscodium(command) => Ok(command.run()?),
 
         // Wasi
@@ -55,11 +64,6 @@ fn main() -> Result<ExitCode> {
             flags::WasiCmd::DownloadSdk(subcommand) => subcommand.run(),
             flags::WasiCmd::UpdateSdk(subcommand) => subcommand.run(),
             flags::WasiCmd::CleanSdk(subcommand) => subcommand.run()
-        },
-
-        // Clean-up
-        flags::XtaskCmd::Clean(command) => Ok(command.run()?),
-        flags::XtaskCmd::CleanServer(command) => Ok(command.run()?),
-        flags::XtaskCmd::CleanGrammar(command) => Ok(command.run()?)
+        }
     }
 }
