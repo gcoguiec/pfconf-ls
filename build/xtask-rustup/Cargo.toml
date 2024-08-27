@@ -14,5 +14,4 @@ miette = { workspace = true }
 thiserror = { workspace = true }
 duct = { workspace = true }
 tracing = { workspace = true }
-xtask-cache = { path = "../xtask-cache" }
 xtask-utils = { path = "../xtask-utils" }

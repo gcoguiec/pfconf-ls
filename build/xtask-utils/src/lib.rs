@@ -10,6 +10,8 @@ use miette::Result;
 
 pub mod cli;
 
+pub static VERSION_PATTERN: &str = r"^\d+.\d+.\d+$";
+
 pub type TargetDouble = (&'static str, &'static str);
 
 /// Fetches environment variable or a default value otherwise.

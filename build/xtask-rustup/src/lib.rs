@@ -11,7 +11,7 @@ pub enum RustupEnvError {
     #[diagnostic(code(xtask::rustup::env::missing_sysroot_error))]
     NoSysroot(IoError),
 
-    #[error("Couldn't fetch rustup location.")]
+    #[error("Couldn't find rustup location.")]
     #[diagnostic(
         code(xtask::rustup::env::unlocatable_error),
         help("Running `which rustup` can help diagnose this issue.")
@@ -40,13 +40,14 @@ impl RustupEnv {
     /// Creates a new rustup environment initialized from local environment
     /// variables (or defaults).
     pub fn from_local_env() -> Result<Self, RustupEnvError> {
+        let rustup_location = match cmd!("which", "rustup").read() {
+            Ok(stdout) => stdout.trim().to_string(),
+            Err(_) => return Err(RustupEnvError::Unlocatable)
+        };
         Ok(Self {
             rustup_path: PathBuf::from(fetch_env_or(
                 "RUSTUP_PATH",
-                &match cmd!("which", "rustup").read() {
-                    Ok(stdout) => stdout.trim().to_string(),
-                    Err(_) => return Err(RustupEnvError::Unlocatable)
-                }
+                &rustup_location
             )),
             sysroot_path: match get_sysroot_path() {
                 Ok(path) => path,

@@ -23,7 +23,6 @@ tracing-log = { workspace = true }
 tracing-subscriber = { workspace = true }
 nu-ansi-term = { workspace = true }
 duct = { workspace = true }
-xtask-cache = { path = "../xtask-cache" }
 xtask-cargo = { path = "../xtask-cargo" }
 xtask-node = { path = "../xtask-node" }
 xtask-rustup = { path = "../xtask-rustup" }

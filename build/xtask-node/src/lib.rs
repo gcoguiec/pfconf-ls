@@ -17,16 +17,7 @@ use std::io::Error as IoError;
 use thiserror::Error;
 use tracing::{debug, error, info, trace};
 
-use xtask_cache::{ToolEntry, TOOLS_CACHE};
-use xtask_utils::fetch_env_or;
-
-static PNPM_DEFAULT_BINARY: &str = "pnpm";
-static PNPM_FLAG_KEY: &str = "has_pnpm";
-
-static VOLTA_DEFAULT_BINARY: &str = "volta";
-static VOLTA_FLAG_KEY: &str = "has_volta";
-
-static VERSION_PATTERN: &str = r"^\d+.\d+.\d+$";
+use xtask_utils::{fetch_env_or, VERSION_PATTERN};
 
 #[derive(Debug, Error, Diagnostic)]
 pub enum NodeManifestError {
@@ -87,6 +78,56 @@ pub enum NodeError {
     }
 }
 
+#[derive(Debug, Error, Diagnostic)]
+pub enum NodeEnvError<'n> {
+    #[error("Couldn't find {0} location.")]
+    #[diagnostic(
+        code(xtask::node::env::unlocatable_error),
+        help("Running `which {0}` can help diagnose this issue.")
+    )]
+    Unlocatable(&'n str)
+}
+
+#[derive(Debug)]
+pub struct NodeEnv {
+    pnpm_path: PathBuf,
+    volta_path: PathBuf
+}
+
+impl<'n> NodeEnv {
+    /// Creates a new node environment
+    pub fn from_local_env() -> Result<Self, NodeEnvError<'n>> {
+        let pnpm_location = match cmd!("which", "pnpm").read() {
+            Ok(stdout) => stdout.trim().to_string(),
+            Err(_) => return Err(NodeEnvError::Unlocatable("pnpm"))
+        };
+        let volta_location = match cmd!("which", "volta").read() {
+            Ok(stdout) => stdout.trim().to_string(),
+            Err(_) => return Err(NodeEnvError::Unlocatable("volta"))
+        };
+        Ok(Self {
+            pnpm_path: PathBuf::from(fetch_env_or("PNPM_PATH", &pnpm_location)),
+            volta_path: PathBuf::from(fetch_env_or(
+                "VOLTA_PATH",
+                &volta_location
+            ))
+        })
+    }
+
+    /// Checks if the system has pnpm installed.
+    pub fn is_pnpm_installed(&self) -> bool {
+        match cmd!(&self.pnpm_path, "--version").read() {
+            Ok(stdout) => Regex::new(VERSION_PATTERN)
+                .expect("Invalid version regex pattern.")
+                .is_match(&stdout),
+            Err(err) => {
+                debug!("Underlying error: {err}");
+                false
+            }
+        }
+    }
+}
+
 #[derive(Debug, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct PackageJson {
@@ -128,51 +169,14 @@ impl PackageJson {
     }
 }
 
-/// Checks if the system has pnpm installed.
-pub fn is_pnpm_installed() -> bool {
-    let mut cache =
-        TOOLS_CACHE.lock().expect("Could not lock the tools cache.");
-    if let Some(tool_entry) = cache.get(PNPM_FLAG_KEY) {
-        return tool_entry.present;
-    }
-    // @todo PNPM => PNPM_PATH, remove DEFAULT_BINARY
-    let pnpm_path = fetch_env_or("PNPM", PNPM_DEFAULT_BINARY);
-    match cmd!(&pnpm_path, "--version").read() {
-        Ok(stdout) => {
-            trace!("Found `pnpm` version {stdout}.");
-            let flag = Regex::new(VERSION_PATTERN)
-                .expect("Invalid version regex pattern.")
-                .is_match(&stdout);
-            cache.put(PNPM_FLAG_KEY, ToolEntry {
-                present: true,
-                path: Some(PathBuf::from(pnpm_path)),
-                version: Some(stdout)
-            });
-            flag
-        }
-        Err(err) => {
-            debug!("Underlying error: {err}");
-            cache.put(PNPM_FLAG_KEY, ToolEntry {
-                present: false,
-                path: None,
-                version: None
-            });
-            false
-        }
-    }
-}
-
 /// Executes node / pnpm with provided arguments.
-pub fn pnpm_execute(args: Vec<&str>) -> Result<Output, NodeError> {
-    if !is_pnpm_installed() {
-        return Err(NodeError::PnpmNotPresent);
-    }
+pub fn pnpm_execute(
+    env: &NodeEnv,
+    args: Vec<&str>
+) -> Result<Output, NodeError> {
     let command = args.join(" ");
     trace!("Command: '{command}'");
-    match cmd(fetch_env_or("PNPM", PNPM_DEFAULT_BINARY), args)
-        .stdout_capture()
-        .run()
-    {
+    match cmd(&env.pnpm_path, args).stdout_capture().run() {
         Ok(output) => Ok(output),
         Err(err) => {
             debug!("Underlying I/O error: {err}");
@@ -183,10 +187,12 @@ pub fn pnpm_execute(args: Vec<&str>) -> Result<Output, NodeError> {
 
 /// Executes a `pnpm` task in a package context.
 pub fn pnpm_execute_for_package(
+    env: &NodeEnv,
     package_path: &Path,
     args: Vec<&str>
 ) -> Result<Output, NodeError> {
     pnpm_execute(
+        env,
         vec![
             "-C",
             package_path
@@ -201,9 +207,10 @@ pub fn pnpm_execute_for_package(
 
 /// Returns installed dependencies for a specific package.
 pub fn pnpm_installed_dependencies_for_package(
+    env: &NodeEnv,
     package_path: &Path
 ) -> Result<Vec<PackageJson>, NodeError> {
-    let output = pnpm_execute_for_package(package_path, vec![
+    let output = pnpm_execute_for_package(env, package_path, vec![
         "list", "--depth", "0", "--json",
     ])?;
     trace!("Installed Dependencies Output: {:?}", output);
@@ -227,11 +234,13 @@ pub fn pnpm_installed_dependencies_for_package(
 
 /// Checks if package dependencies are installed properly.
 pub fn pnpm_ensure_dependencies_for_package(
+    env: &NodeEnv,
     package_path: &Path
 ) -> Result<(), NodeError> {
     let package_json =
         PackageJson::from_path(&package_path.join("package.json"))?;
-    let installed = &pnpm_installed_dependencies_for_package(package_path)?[0];
+    let installed =
+        &pnpm_installed_dependencies_for_package(env, package_path)?[0];
 
     let mut installed_dependencies: HashMap<String, Value> = HashMap::new();
     for collection in installed.iter().flatten() {
@@ -309,10 +318,12 @@ pub fn pnpm_ensure_satisfied_dependency_for_package(
 
 /// Installs specific package dependencies (if necessary).
 pub fn pnpm_install_dependencies_for_package(
+    env: &NodeEnv,
     package_path: &PathBuf
 ) -> Result<(), NodeError> {
     info!("Checking dependency availability...");
     let run_install = |package_path: &PathBuf| match pnpm_execute_for_package(
+        env,
         package_path,
         vec!["install", "--frozen-lockfile"]
     ) {
@@ -326,7 +337,7 @@ pub fn pnpm_install_dependencies_for_package(
         }
     };
 
-    match pnpm_ensure_dependencies_for_package(package_path) {
+    match pnpm_ensure_dependencies_for_package(env, package_path) {
         Ok(_) => {
             info!("✅ Dependencies are up-to-date.");
         }
@@ -344,37 +355,20 @@ pub fn pnpm_install_dependencies_for_package(
         Err(err) => return Err(err)
     }
     // Double-check (literally).
-    pnpm_ensure_dependencies_for_package(package_path)
+    pnpm_ensure_dependencies_for_package(env, package_path)
 }
 
 /// Checks if the system has volta installed.
-pub fn is_volta_installed() -> bool {
-    let mut cache =
-        TOOLS_CACHE.lock().expect("Could not lock the tools cache.");
-    if let Some(tool_entry) = cache.get(VOLTA_FLAG_KEY) {
-        return tool_entry.present;
-    }
-    let volta_path = fetch_env_or("VOLTA", VOLTA_DEFAULT_BINARY);
-    match cmd!(&volta_path, "--version").read() {
+pub fn is_volta_installed(env: &NodeEnv) -> bool {
+    match cmd!(&env.volta_path, "--version").read() {
         Ok(stdout) => {
             trace!("Found `volta` version {stdout}.");
-            let flag = Regex::new(VERSION_PATTERN)
+            Regex::new(VERSION_PATTERN)
                 .expect("Invalid version regex pattern.")
-                .is_match(&stdout);
-            cache.put(VOLTA_FLAG_KEY, ToolEntry {
-                present: true,
-                path: Some(PathBuf::from(volta_path)),
-                version: Some(stdout)
-            });
-            flag
+                .is_match(stdout.trim())
         }
         Err(err) => {
             debug!("Underlying error: {err}");
-            cache.put(VOLTA_FLAG_KEY, ToolEntry {
-                present: true,
-                path: None,
-                version: None
-            });
             false
         }
     }

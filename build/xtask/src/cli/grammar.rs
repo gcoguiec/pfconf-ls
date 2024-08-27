@@ -7,6 +7,7 @@ use xtask_node::{
     is_volta_installed,
     pnpm_execute_for_package,
     pnpm_install_dependencies_for_package,
+    NodeEnv,
     PackageJson
 };
 
@@ -29,8 +30,10 @@ impl Command for flags::GenerateGrammar {
                     return Ok(ExitCode::FAILURE)
                 }
             };
+        // @todo match
+        let node_env = NodeEnv::from_local_env()?;
         // We check if `volta` is available, if not we warn the developer about it.
-        if manifest.volta.is_some() && !is_volta_installed() {
+        if manifest.volta.is_some() && !is_volta_installed(&node_env) {
             let volta_config = manifest.volta.expect(
                 "A `volta` configuration object was expected in the package \
                  manifest"
@@ -49,14 +52,16 @@ impl Command for flags::GenerateGrammar {
         // We verify that grammar project `node_modules` is correctly populated
         // and that all dependencies are up-to-date. If not, we try running
         // `pnpm install` once to correct the issue.
-        if let Err(err) = pnpm_install_dependencies_for_package(&package_path) {
+        if let Err(err) =
+            pnpm_install_dependencies_for_package(&node_env, &package_path)
+        {
             error!("{err}");
             return Ok(ExitCode::FAILURE)
         }
         info!(
             "Proceeding to generate parser/scanner from grammar definition..."
         );
-        match pnpm_execute_for_package(&package_path, vec!["gen"]) {
+        match pnpm_execute_for_package(&node_env, &package_path, vec!["gen"]) {
             Ok(_) => {
                 // We make sure parser was successfully generated before moving on.
                 let artifact_path = package_path.join("src/parser.c");

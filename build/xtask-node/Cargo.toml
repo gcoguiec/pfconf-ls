@@ -22,5 +22,4 @@ serde_json = { workspace = true }
 duct = { workspace = true }
 regex = "1.10.4"
 semver = "1.0.23"
-xtask-cache = { path = "../xtask-cache" }
 xtask-utils = { path = "../xtask-utils" }
