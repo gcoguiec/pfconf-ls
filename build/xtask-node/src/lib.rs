@@ -172,11 +172,11 @@ pub fn pnpm_execute(
     args: Vec<&str>
 ) -> Result<Output, NodeError> {
     let command = format!("{} {}", env.pnpm_path.display(), args.join(" "));
-    trace!(target: "xtask::node::pnpm_execute", command = ?command);
+    trace!(command = ?command);
     match cmd(&env.pnpm_path, args).stdout_capture().run() {
         Ok(output) => Ok(output),
         Err(err) => {
-            debug!("Underlying I/O error: {err}");
+            debug!(target: "xtask::node::pnpm::pnpm_execute", err = ?err);
             Err(NodeError::PnpmExecutionFailed { err, command })
         }
     }
@@ -359,7 +359,8 @@ pub fn pnpm_install_dependencies_for_package(
 pub fn is_volta_installed(env: &NodeEnv) -> bool {
     match cmd!(&env.volta_path, "--version").read() {
         Ok(stdout) => {
-            trace!("Found `volta` version {stdout}.");
+            trace!(target: "xtask::node::volta::is_installed", version =
+                ?stdout.trim());
             Regex::new(VERSION_PATTERN)
                 .expect("Invalid version regex pattern.")
                 .is_match(stdout.trim())

@@ -270,7 +270,8 @@ impl WasiSdkEnv {
         if self.target_dir_path.exists() {
             return Ok(())
         }
-        debug!("Directory to create: {}", self.target_dir_path.display());
+        trace!(target: "xtask::wasi::sdk::ensure_target_directory_exists",
+            dir = ?self.target_dir_path.display());
         if let Err(err) = create_directory_path(&self.target_dir_path) {
             return Err(WasiSdkError::Directory {
                 err,
@@ -354,7 +355,7 @@ pub fn download_release(
             })
         }
     };
-    trace!("Url: {}", release_entry.url);
+    trace!(target: "xtask::wasi::sdk::download_release", url = ?release_entry.url);
     let mut response = match reqwest::blocking::get(release_entry.url.as_str())
     {
         Ok(response) => response,
@@ -390,7 +391,7 @@ pub fn verify_release(
             })
         }
     };
-    trace!("Expected signature: {}", release_entry.sha512);
+    trace!(expected_signature = ?release_entry.sha512);
     let expected = match hex::decode(&release_entry.sha512) {
         Ok(signature) => signature,
         Err(err) => return Err(WasiSdkDownloadError::SignatureDecoding(err))
@@ -409,7 +410,8 @@ pub fn verify_release(
             filepath: env.get_release_tarball_path().to_path_buf()
         })
     }
-    debug!("'{}' signature is valid.", hex::encode(actual));
+    debug!(target: "xtask::wasi::sdk::verify_release", signature =
+        ?hex::encode(actual), "Signature is valid.");
     Ok(())
 }
 
