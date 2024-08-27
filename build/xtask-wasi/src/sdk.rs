@@ -29,7 +29,7 @@ pub enum WasiSdkError {
         "Failed to create or modify wasi-sdk directory at {filepath}. {err}"
     )]
     #[diagnostic(
-        code(xtask::wasi::sdk::directory_error),
+        code(xtask_wasi::sdk::directory_error),
         help("Do you have permissions to create or modify the directory?")
     )]
     Directory { err: IoError, filepath: PathBuf },
@@ -38,7 +38,7 @@ pub enum WasiSdkError {
         "Building for the wasm32-wasi target is not supported on a {0} system."
     )]
     #[diagnostic(
-        code(xtask::wasi::sdk::unsupported_system_error),
+        code(xtask_wasi::sdk::unsupported_system_error),
         help(
             "Only Windows (x86_64), Linux (x86_64,arm64) and MacOS \
              (x86_64,arm64) are supported."
@@ -50,7 +50,7 @@ pub enum WasiSdkError {
         "An error occurred when trying to read `xtask-wasi` cargo manifest: \
          {0}"
     )]
-    #[diagnostic(code(xtask::wasi::sdk::manifest_error))]
+    #[diagnostic(code(xtask_wasi::sdk::manifest_error))]
     Manifest(CargoManifestError)
 }
 
@@ -61,17 +61,17 @@ pub enum WasiSdkDownloadError {
          {err}"
     )]
     #[diagnostic(
-        code(xtask::wasi::sdk::download::file_error),
+        code(xtask_wasi::sdk::download::file_error),
         help("Do you have permissions to create or modify this file?")
     )]
     File { err: IoError, filepath: PathBuf },
 
     #[error("An error occurred when downloading wasi-sdk release. {0}")]
-    #[diagnostic(code(xtask::wasi::sdk::download::request_error))]
+    #[diagnostic(code(xtask_wasi::sdk::download::request_error))]
     Request(ReqwestError),
 
     #[error("An error occurred when writing content to tarball file. {0}")]
-    #[diagnostic(code(xtask::wasi::sdk::download::copy_error))]
+    #[diagnostic(code(xtask_wasi::sdk::download::copy_error))]
     Copy(ReqwestError),
 
     #[error(
@@ -87,11 +87,11 @@ pub enum WasiSdkDownloadError {
     #[error(
         "Updating the hasher failed. Couldn't build release signature. {0}"
     )]
-    #[diagnostic(code(xtask::wasi::sdk::download::hasher_update_error))]
+    #[diagnostic(code(xtask_wasi::sdk::download::hasher_update_error))]
     HasherUpdate(IoError),
 
     #[error("Failed to decode hasher's finalized output as raw bytes. {0}")]
-    #[diagnostic(code(xtask::wasi::sdk::download::signature_decoding_error))]
+    #[diagnostic(code(xtask_wasi::sdk::download::signature_decoding_error))]
     SignatureDecoding(FromHexError)
 }
 
@@ -99,17 +99,17 @@ pub enum WasiSdkDownloadError {
 pub enum WasiSdkExtractError {
     #[error("Failed to open wasi-sdk tarball file at '{filepath}'. {err}")]
     #[diagnostic(
-        code(xtask::wasi::sdk::extract::file_error),
+        code(xtask_wasi::sdk::extract::file_error),
         help("Do you have permissions to read this file?")
     )]
     File { err: IoError, filepath: PathBuf },
 
     #[error("An error occurred when trying to access archive content. {0}")]
-    #[diagnostic(code(xtask::wasi::sdk::extract::archive_error))]
+    #[diagnostic(code(xtask_wasi::sdk::extract::archive_error))]
     Archive(IoError),
 
     #[error("An error occurred when trying to unpack archive item. {0}")]
-    #[diagnostic(code(xtask::wasi::sdk::extract::unpack_error))]
+    #[diagnostic(code(xtask_wasi::sdk::extract::unpack_error))]
     Unpack(IoError)
 }
 
@@ -270,7 +270,7 @@ impl WasiSdkEnv {
         if self.target_dir_path.exists() {
             return Ok(())
         }
-        trace!(target: "xtask::wasi::sdk::ensure_target_directory_exists",
+        trace!(target: "xtask_wasi::sdk::ensure_target_directory_exists",
             dir = ?self.target_dir_path.display());
         if let Err(err) = create_directory_path(&self.target_dir_path) {
             return Err(WasiSdkError::Directory {
@@ -355,7 +355,7 @@ pub fn download_release(
             })
         }
     };
-    trace!(target: "xtask::wasi::sdk::download_release", url = ?release_entry.url);
+    trace!(target: "xtask_wasi::sdk::download_release", url = ?release_entry.url);
     let mut response = match reqwest::blocking::get(release_entry.url.as_str())
     {
         Ok(response) => response,
@@ -410,7 +410,7 @@ pub fn verify_release(
             filepath: env.get_release_tarball_path().to_path_buf()
         })
     }
-    debug!(target: "xtask::wasi::sdk::verify_release", signature =
+    debug!(target: "xtask_wasi::sdk::verify_release", signature =
         ?hex::encode(actual), "Signature is valid.");
     Ok(())
 }

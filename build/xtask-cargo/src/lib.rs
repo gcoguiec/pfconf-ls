@@ -18,12 +18,12 @@ use xtask_utils::fetch_env_or_else;
 #[derive(Debug, Error, Diagnostic)]
 pub enum CargoManifestError {
     #[error("Failed to open cargo manifest for {filepath}. {err}")]
-    #[diagnostic(code(xtask::cargo::manifest::file_error))]
+    #[diagnostic(code(xtask_cargo::manifest::file_error))]
     File { err: IoError, filepath: PathBuf },
 
     #[error("Unsufficient permissions when trying to read cargo manifest.")]
     #[diagnostic(
-        code(xtask::cargo::manifest::unsufficient_permission_error),
+        code(xtask_cargo::manifest::unsufficient_permission_error),
         help(
             "Maybe the user you are executing xtask with does not have read \
              permission on the manifest file?"
@@ -32,7 +32,7 @@ pub enum CargoManifestError {
     UnsufficientPermission,
 
     #[error("Failed to parse file '{filepath}' as TOML. {err}")]
-    #[diagnostic(code(xtask::cargo::manifest::parsing_failed_error))]
+    #[diagnostic(code(xtask_cargo::manifest::parsing_failed_error))]
     ParsingFailed {
         err: TomlDeserializingError,
         filepath: PathBuf
@@ -90,11 +90,11 @@ impl CargoManifest {
 #[derive(Debug, Error, Diagnostic)]
 pub enum CargoError {
     #[error("Failed to execute `cargo` command. {err}")]
-    #[diagnostic(code(xtask::cargo::execution_failed_error))]
+    #[diagnostic(code(xtask_cargo::execution_failed_error))]
     ExecutionFailed { err: IoError },
 
     #[error("An error occurred when handling '{filepath}' manifest. {err}")]
-    #[diagnostic(code(xtask::cargo::manifest_error))]
+    #[diagnostic(code(xtask_cargo::manifest_error))]
     Manifest {
         err: Box<CargoManifestError>,
         filepath: PathBuf

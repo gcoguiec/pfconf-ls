@@ -22,37 +22,37 @@ use xtask_utils::{fetch_env_or_else, VERSION_PATTERN};
 #[derive(Debug, Error, Diagnostic)]
 pub enum NodeManifestError {
     #[error(transparent)]
-    #[diagnostic(code(xtask::node::manifest::invalid_path_error))]
+    #[diagnostic(code(xtask_node::manifest::invalid_path_error))]
     InvalidPath(#[from] IoError),
 
     #[error("Failed to convert manifest content to UTF-8, {0}.")]
-    #[diagnostic(code(xtask::node::manifest::content_error))]
+    #[diagnostic(code(xtask_node::manifest::content_error))]
     Content(Utf8Error),
 
     #[error("Failed to parse manifest as JSON, {0}.")]
-    #[diagnostic(code(xtask::node::manifest::parsing_failed_error))]
+    #[diagnostic(code(xtask_node::manifest::parsing_failed_error))]
     ParsingFailed(SerdeJsonError)
 }
 
 #[derive(Debug, Error, Diagnostic)]
 pub enum NodeError {
     #[error("The `pnpm` package manager is not present on this system.")]
-    #[diagnostic(code(xtask::node::pnpm_not_present_error))]
+    #[diagnostic(code(xtask_node::pnpm_not_present_error))]
     PnpmNotPresent,
 
     #[error("Failed to execute `pnpm` command '{command}'. {err}")]
-    #[diagnostic(code(xtask::node::pnpm_execution_failed_error))]
+    #[diagnostic(code(xtask_node::pnpm_execution_failed_error))]
     PnpmExecutionFailed { err: IoError, command: String },
 
     #[error("Missing dependency package '{package_name}'.")]
-    #[diagnostic(code(xtask::node::missing_dependency_error))]
+    #[diagnostic(code(xtask_node::missing_dependency_error))]
     MissingDependency { package_name: String },
 
     #[error(
         "Could not parse '{version}' version for package '{package_name}'. \
          {err}"
     )]
-    #[diagnostic(code(xtask::node::unparsable_version_error))]
+    #[diagnostic(code(xtask_node::unparsable_version_error))]
     UnparsableVersion {
         package_name: String,
         version: String,
@@ -63,7 +63,7 @@ pub enum NodeError {
         "Version mismatch for dependency package '{package_name}', version \
          '{expected_version}' expected, '{installed_version}' installed."
     )]
-    #[diagnostic(code(xtask::node::mismatched_dependency_version_error))]
+    #[diagnostic(code(xtask_node::mismatched_dependency_version_error))]
     MismatchedDependencyVersion {
         package_name: String,
         expected_version: String,
@@ -71,7 +71,7 @@ pub enum NodeError {
     },
 
     #[error("An error occurred when handling '{filepath}' manifest. {err}")]
-    #[diagnostic(code(xtask::node::manifest_error))]
+    #[diagnostic(code(xtask_node::manifest_error))]
     Manifest {
         err: Box<NodeManifestError>,
         filepath: PathBuf
@@ -116,7 +116,7 @@ impl NodeEnv {
                 .expect("Invalid version regex pattern.")
                 .is_match(&stdout),
             Err(err) => {
-                debug!(target: "xtask::node::pnpm::is_installed", err = ?err);
+                debug!(target: "xtask_node::pnpm::is_installed", err = ?err);
                 false
             }
         }
@@ -172,11 +172,11 @@ pub fn pnpm_execute(
     args: Vec<&str>
 ) -> Result<Output, NodeError> {
     let command = format!("{} {}", env.pnpm_path.display(), args.join(" "));
-    trace!(command = ?command);
+    trace!(target: "xtask_node::pnpm_execute", command = ?command);
     match cmd(&env.pnpm_path, args).stdout_capture().run() {
         Ok(output) => Ok(output),
         Err(err) => {
-            debug!(target: "xtask::node::pnpm::pnpm_execute", err = ?err);
+            debug!(target: "xtask_node::pnpm_execute", err = ?err);
             Err(NodeError::PnpmExecutionFailed { err, command })
         }
     }
@@ -210,7 +210,8 @@ pub fn pnpm_installed_dependencies_for_package(
     let output = pnpm_execute_for_package(env, package_path, vec![
         "list", "--depth", "0", "--json",
     ])?;
-    trace!(target: "xtask::node::pnpm::installed_dependencies", output = ?output);
+    trace!(target: "xtask_node::pnpm_installed_dependencies_for_package",
+        output = ?output);
     let json = match str::from_utf8(&output.stdout) {
         Ok(value) => value,
         Err(err) => {
@@ -359,14 +360,14 @@ pub fn pnpm_install_dependencies_for_package(
 pub fn is_volta_installed(env: &NodeEnv) -> bool {
     match cmd!(&env.volta_path, "--version").read() {
         Ok(stdout) => {
-            trace!(target: "xtask::node::volta::is_installed", version =
+            trace!(target: "xtask_node::is_volta_installed", version =
                 ?stdout.trim());
             Regex::new(VERSION_PATTERN)
                 .expect("Invalid version regex pattern.")
                 .is_match(stdout.trim())
         }
         Err(err) => {
-            debug!(target: "xtask::node::volta::is_installed", err = ?err);
+            debug!(target: "xtask_node::is_volta_installed", err = ?err);
             false
         }
     }

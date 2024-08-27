@@ -8,12 +8,12 @@ use xtask_utils::{fetch_env_or_else, get_sysroot_path};
 #[derive(Debug, Error, Diagnostic)]
 pub enum RustupEnvError {
     #[error("Couldn't obtain active Rust toolchain sysroot path. {0}")]
-    #[diagnostic(code(xtask::rustup::env::missing_sysroot_error))]
+    #[diagnostic(code(xtask_rustup::env::missing_sysroot_error))]
     NoSysroot(IoError),
 
     #[error("Couldn't find rustup location.")]
     #[diagnostic(
-        code(xtask::rustup::env::unlocatable_error),
+        code(xtask_rustup::env::unlocatable_error),
         help("Running `which rustup` can help diagnose this issue.")
     )]
     Unlocatable
@@ -22,7 +22,7 @@ pub enum RustupEnvError {
 #[derive(Debug, Error, Diagnostic)]
 pub enum RustupError<'rustup_env> {
     #[error("Couldn't add new toolchain target '{target_name}'. {err}")]
-    #[diagnostic(code(xtask::rustup::target_addition_failed_error))]
+    #[diagnostic(code(xtask_rustup::target_addition_failed_error))]
     TargetAdditionFailed {
         target_name: &'rustup_env str,
         err: IoError
@@ -72,7 +72,7 @@ impl RustupEnv {
         {
             Ok(_) => true,
             Err(err) => {
-                debug!(target: "xtask::rustup::env::is_rustup_installed",
+                debug!(target: "xtask_rustup::env::is_rustup_installed",
                     rustup_path = ?self.rustup_path, "{err}");
                 false
             }

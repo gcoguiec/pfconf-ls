@@ -11,7 +11,7 @@ use thiserror::Error;
 #[derive(Debug, Error, Diagnostic)]
 pub enum AnswerError<'q> {
     #[error(
-        "'{current_answer}' isn't a valid answer. Available answers are: \
+        "'{current_answer}' isn't a valid answer. Available answers: \
          {available_answers}."
     )]
     #[diagnostic(code(xtask::utils::cli::answer::invalid_error))]
