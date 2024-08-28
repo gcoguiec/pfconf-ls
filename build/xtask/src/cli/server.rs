@@ -1,5 +1,6 @@
 use std::{path::PathBuf, process::ExitCode};
 
+use duct::cmd;
 use miette::Result;
 use tracing::info;
 use tracing_log::log::error;
@@ -109,8 +110,31 @@ impl flags::BuildServer {
             "All good! wasi-sdk path is '{}'.",
             sdk_env.get_target_dir_path().display()
         );
-        let _server_env = ServerEnv::from_local_env();
-        // RUSTFLAGS='-L /Users/yugo/projects/pfconf-ls/lib/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasi' CC=/Users/yugo/projects/pfconf-ls/lib/wasi-sdk/bin/clang CFLAGS="-Wno-implicit-function-declaration" cargo build --target wasm32-wasip1 -p pfconf-ls --release
+
+        info!("Building the language server.");
+        cmd!(
+            "cargo",
+            "build",
+            "--target",
+            target_name,
+            "-p",
+            "pfconf-ls",
+            "--release"
+        )
+        .env(
+            "RUSTFLAGS",
+            format!(
+                "-L {}",
+                sdk_env
+                    .get_target_dir_path()
+                    .join("share/wasi-sysroot/lib/wasm32-wasi")
+                    .display()
+            )
+        )
+        .env("CC", sdk_env.get_target_dir_path().join("bin/clang"))
+        .env("CFLAGS", "-Wno-implicit-function-declaration")
+        .run()
+        .unwrap();
         Ok(ExitCode::SUCCESS)
     }
 }
