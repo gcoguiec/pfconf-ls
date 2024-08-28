@@ -55,7 +55,7 @@ impl flags::BuildServer {
 
     /// Builds language server for the wasm32-wasi target.
     fn build_wasi_target() -> Result<ExitCode> {
-        // Several dependencies (rustix,...) are not building with wasm32-wasip2 target (as of 11 Aug 2024)
+        // Several dependencies (rustix,...) are not building with wasm32-wasip2 target (as of 28 Aug 2024)
         // That's why we'll need to build to wasip1 then move it to wasip2 with jco.
         let target_name = "wasm32-wasip1";
         let rustup_env = match RustupEnv::from_local_env() {
@@ -110,7 +110,6 @@ impl flags::BuildServer {
             "All good! wasi-sdk path is '{}'.",
             sdk_env.get_target_dir_path().display()
         );
-
         info!("Building the language server.");
         cmd!(
             "cargo",
@@ -119,7 +118,7 @@ impl flags::BuildServer {
             target_name,
             "-p",
             "pfconf-ls",
-            "--release"
+            "--release" // @todo handle build flags
         )
         .env(
             "RUSTFLAGS",
@@ -134,7 +133,8 @@ impl flags::BuildServer {
         .env("CC", sdk_env.get_target_dir_path().join("bin/clang"))
         .env("CFLAGS", "-Wno-implicit-function-declaration")
         .run()
-        .unwrap();
+        .unwrap(); // @todo handle errors
+        // @todo Implement the jco + wit step.
         Ok(ExitCode::SUCCESS)
     }
 }
