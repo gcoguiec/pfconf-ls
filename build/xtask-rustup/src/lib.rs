@@ -20,13 +20,10 @@ pub enum RustupEnvError {
 }
 
 #[derive(Debug, Error, Diagnostic)]
-pub enum RustupError<'rustup_env> {
+pub enum RustupError<'r> {
     #[error("Couldn't add new toolchain target '{target_name}'. {err}")]
     #[diagnostic(code(xtask_rustup::target_addition_failed_error))]
-    TargetAdditionFailed {
-        target_name: &'rustup_env str,
-        err: IoError
-    }
+    TargetAdditionFailed { target_name: &'r str, err: IoError }
 }
 
 /// Holds variables for local rustup installation.

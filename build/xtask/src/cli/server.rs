@@ -1,4 +1,4 @@
-use std::{path::PathBuf, process::ExitCode};
+use std::{ffi::OsString, path::PathBuf, process::ExitCode};
 
 use duct::cmd;
 use miette::Result;
@@ -40,21 +40,21 @@ impl Command for flags::BuildServer {
     /// Builds the language server.
     fn run(&self) -> Result<ExitCode> {
         if self.wasi {
-            flags::BuildServer::build_wasi_target()
+            flags::BuildServer::build_wasi_target(self)
         } else {
-            flags::BuildServer::build_system_target()
+            flags::BuildServer::build_system_target(self)
         }
     }
 }
 
 impl flags::BuildServer {
     /// Builds language server for provided target.
-    fn build_system_target() -> Result<ExitCode> {
+    fn build_system_target(&self) -> Result<ExitCode> {
         Ok(ExitCode::SUCCESS)
     }
 
     /// Builds language server for the wasm32-wasi target.
-    fn build_wasi_target() -> Result<ExitCode> {
+    fn build_wasi_target(&self) -> Result<ExitCode> {
         // Several dependencies (rustix,...) are not building with wasm32-wasip2 target (as of 28 Aug 2024)
         // That's why we'll need to build to wasip1 then move it to wasip2 with jco.
         let target_name = "wasm32-wasip1";
@@ -111,29 +111,38 @@ impl flags::BuildServer {
             sdk_env.get_target_dir_path().display()
         );
         info!("Building the language server.");
-        cmd!(
-            "cargo",
-            "build",
-            "--target",
-            target_name,
-            "-p",
-            "pfconf-ls",
-            "--release" // @todo handle build flags
-        )
-        .env(
-            "RUSTFLAGS",
-            format!(
-                "-L {}",
-                sdk_env
-                    .get_target_dir_path()
-                    .join("share/wasi-sysroot/lib/wasm32-wasi")
-                    .display()
+        let mut args = Vec::from([
+            OsString::from("build"),
+            OsString::from("--target"),
+            OsString::from(target_name),
+            OsString::from("-p"),
+            OsString::from("pfconf-ls")
+        ]);
+        if self.release {
+            args.push(OsString::from("--release"));
+        }
+        if let Some(jobs) = self.jobs {
+            args.push(OsString::from("--jobs"));
+            args.push(OsString::from(jobs.to_string()));
+        }
+        if let Err(err) = cmd("cargo", args)
+            .env(
+                "RUSTFLAGS",
+                format!(
+                    "-L {}",
+                    sdk_env
+                        .get_target_dir_path()
+                        .join("share/wasi-sysroot/lib/wasm32-wasi")
+                        .display()
+                )
             )
-        )
-        .env("CC", sdk_env.get_target_dir_path().join("bin/clang"))
-        .env("CFLAGS", "-Wno-implicit-function-declaration")
-        .run()
-        .unwrap(); // @todo handle errors
+            .env("CC", sdk_env.get_target_dir_path().join("bin/clang"))
+            .env("CFLAGS", "-Wno-implicit-function-declaration")
+            .run()
+        {
+            error!("{err}");
+            return Ok(ExitCode::FAILURE)
+        }
         // @todo Implement the jco + wit step.
         Ok(ExitCode::SUCCESS)
     }

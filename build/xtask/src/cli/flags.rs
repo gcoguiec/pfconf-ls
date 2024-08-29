@@ -12,6 +12,10 @@ xflags::xflags! {
 
         /// Build configuration language server.
         cmd build-server {
+            /// Build server artifacts in release mode, with optimizations.
+            optional -r, --release
+            /// Number of parallel jobs, defaults to # of CPUs.
+            optional -j, --jobs jobs: u32
             /// Compiles server for wasm32-wasi target.
             optional -w, --wasi
         }
@@ -51,7 +55,7 @@ xflags::xflags! {
 pub struct Xtask {
     pub verbose: u32,
     pub quiet: bool,
-    pub subcommand: XtaskCmd,
+    pub subcommand: XtaskCmd
 }
 
 #[derive(Debug)]
@@ -62,7 +66,7 @@ pub enum XtaskCmd {
     GenerateGrammar(GenerateGrammar),
     CleanGrammar(CleanGrammar),
     BuildVscodium(BuildVscodium),
-    Wasi(Wasi),
+    Wasi(Wasi)
 }
 
 #[derive(Debug)]
@@ -70,7 +74,9 @@ pub struct Mrproper;
 
 #[derive(Debug)]
 pub struct BuildServer {
-    pub wasi: bool,
+    pub release: bool,
+    pub jobs: Option<u32>,
+    pub wasi: bool
 }
 
 #[derive(Debug)]
@@ -87,24 +93,24 @@ pub struct BuildVscodium;
 
 #[derive(Debug)]
 pub struct Wasi {
-    pub subcommand: WasiCmd,
+    pub subcommand: WasiCmd
 }
 
 #[derive(Debug)]
 pub enum WasiCmd {
     DownloadSdk(DownloadSdk),
     UpdateSdk(UpdateSdk),
-    CleanSdk(CleanSdk),
+    CleanSdk(CleanSdk)
 }
 
 #[derive(Debug)]
 pub struct DownloadSdk {
-    pub keep: bool,
+    pub keep: bool
 }
 
 #[derive(Debug)]
 pub struct UpdateSdk {
-    pub keep: bool,
+    pub keep: bool
 }
 
 #[derive(Debug)]
