@@ -43,8 +43,8 @@ pub fn run_lsp_server() -> Result<()> {
     let initialize_data = serde_json::json!({
         "capabilities": server_capabilities,
         "serverInfo": {
-            "name": "pfconf-ls", // @TODO
-            "version": "unknown" // @TODO
+            "name": "pfconf-ls", // TODO:
+            "version": "unknown" // TODO:
         }
     });
 

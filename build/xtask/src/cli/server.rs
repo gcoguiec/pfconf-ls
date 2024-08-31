@@ -143,7 +143,9 @@ impl flags::BuildServer {
             error!("{err}");
             return Ok(ExitCode::FAILURE)
         }
-        // @todo Implement the jco + wit step.
+        // TODO: Implement the jco + wit step.
+        // TODO: pnpx @bytecodealliance/jco
+        // TODO: check pnpx is present.
         Ok(ExitCode::SUCCESS)
     }
 }

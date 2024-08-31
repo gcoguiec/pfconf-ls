@@ -1,3 +1,5 @@
 package gcoguiec:pfconf-ls;
 
-world pfconf-ls {}
+world pfconf-ls {
+    export helloworld: func() -> string;
+}
