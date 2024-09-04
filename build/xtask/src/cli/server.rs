@@ -112,6 +112,7 @@ impl flags::BuildServer {
         );
         info!("Building the language server.");
         let mut args = Vec::from([
+            OsString::from("component"),
             OsString::from("build"),
             OsString::from("--target"),
             OsString::from(target_name),
@@ -138,6 +139,7 @@ impl flags::BuildServer {
             )
             .env("CC", sdk_env.get_target_dir_path().join("bin/clang"))
             .env("CFLAGS", "-Wno-implicit-function-declaration")
+            // TODO: bindgen debug flag
             .run()
         {
             error!("{err}");

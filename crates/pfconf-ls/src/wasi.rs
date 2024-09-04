@@ -1,9 +1,9 @@
 #![allow(unsafe_code)]
 #![allow(unsafe_op_in_unsafe_fn)]
 
-wit_bindgen::generate!({
-    world: "pfconf-ls"
-});
+pub mod bindings;
+
+use bindings::Guest;
 
 struct Component;
 
@@ -13,4 +13,4 @@ impl Guest for Component {
     }
 }
 
-export!(Component);
+bindings::export!(Component with_types_in bindings);

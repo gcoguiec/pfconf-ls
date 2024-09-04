@@ -5,13 +5,27 @@ name = "pfconf-ls"
 version = "0.1.0"
 edition = "2024"
 
+[package.metadata.component]
+package = "gcoguiec:pfconf-ls"
+
+[package.metadata.component.bindings]
+path = "src/wasi/bindings.rs"
+
+[package.metadata.component.dependencies]
+
 [[bin]]
 name = "pfconf-ls"
 path = "src/bin/main.rs"
 
+[lib]
+crate-type = ["rlib", "cdylib"]
+
 [profile.release]
-lto = "fat"
 codegen-units = 1
+opt-level = "s"
+debug = false
+strip = true
+lto = true
 
 [dependencies]
 libc = { workspace = true }
@@ -33,5 +47,5 @@ features = [
     "Win32_System_Threading"
 ]
 
-[target.'cfg(target_os = "wasi")'.dependencies.wit-bindgen]
+[target.'cfg(target_os = "wasi")'.dependencies.wit-bindgen-rt]
 version = "0.30.0"
