@@ -1,11 +1,17 @@
-use std::{ffi::OsString, path::PathBuf, process::ExitCode};
+use std::{
+    ffi::OsString,
+    fs::create_dir_all,
+    path::PathBuf,
+    process::ExitCode
+};
 
 use duct::cmd;
 use miette::Result;
-use tracing::info;
+use tracing::{info, warn};
 use tracing_log::log::error;
 
 use xtask_cargo::{cargo_crates_for_root, cargo_execute};
+use xtask_node::{pnpx_execute, NodeEnv};
 use xtask_rustup::{add_toolchain_target, RustupEnv};
 use xtask_utils::{cli::Question, fetch_env_or, from_workspace_root};
 use xtask_wasi::sdk;
@@ -56,8 +62,14 @@ impl flags::BuildServer {
     /// Builds language server for the wasm32-wasi target.
     fn build_wasi_target(&self) -> Result<ExitCode> {
         // Several dependencies (rustix,...) are not building with wasm32-wasip2 target (as of 28 Aug 2024)
-        // That's why we'll need to build to wasip1 then move it to wasip2 with jco.
-        let target_name = "wasm32-wasip1";
+        // That's why we need to build to wasip1 first and then transpile it to wasip2 with jco.
+        let intermediate_target_name = "wasm32-wasip1";
+        let final_target_name = "wasm32-wasip2";
+        let build_mode = match self.release {
+            true => "release",
+            false => "debug"
+        };
+        info!("Building in '{build_mode}' mode.");
         let rustup_env = match RustupEnv::from_local_env() {
             Ok(env) => env,
             Err(err) => {
@@ -72,10 +84,13 @@ impl flags::BuildServer {
             error!("A working rustup setup is required for this build.");
             return Ok(ExitCode::FAILURE)
         }
-        info!("Checking if {target_name} toolchain target is installed.");
-        if !rustup_env.has_toolchain_target(target_name) &&
+        info!(
+            "Checking if '{intermediate_target_name}' toolchain target is \
+             installed."
+        );
+        if !rustup_env.has_toolchain_target(intermediate_target_name) &&
             Question::new(format!(
-                "The target '{target_name}' is not installed for active \
+                "The target '{intermediate_target_name}' is not installed for active \
                  toolchain. Do you want xtask to install it for you?"
             ))
             .register_answer("yes")
@@ -84,20 +99,24 @@ impl flags::BuildServer {
             .ask()
             .is_ok_and(|answer| answer.is_yes())
         {
-            if let Err(err) = add_toolchain_target(&rustup_env, target_name) {
-                error!("Couldn't add {target_name} target. {err}");
+            if let Err(err) =
+                add_toolchain_target(&rustup_env, intermediate_target_name)
+            {
+                error!("Couldn't add {intermediate_target_name} target. {err}");
             }
         }
-        if !rustup_env.has_toolchain_target(target_name) {
+        if !rustup_env.has_toolchain_target(intermediate_target_name) {
             info!(
                 "Please install the toolchain target manually by running \
-                 `rustup target add {target_name}`."
+                 `rustup target add {intermediate_target_name}`."
             );
             return Ok(ExitCode::FAILURE)
         }
-        info!("{target_name} target is installed. Ready to roll!");
+        info!(
+            "'{intermediate_target_name}' target is installed. Ready to roll!"
+        );
         let sdk_env = sdk::WasiSdkEnv::from_local_env();
-        info!("Verifying if wasi-sdk is present.");
+        info!("Verifying if wasi-sdk directory is present.");
         if !sdk_env.is_ready_to_use() {
             error!(
                 "To build the language server for the wasm32-wasi target the \
@@ -110,12 +129,12 @@ impl flags::BuildServer {
             "All good! wasi-sdk path is '{}'.",
             sdk_env.get_target_dir_path().display()
         );
-        info!("Building the language server.");
         let mut args = Vec::from([
             OsString::from("component"),
             OsString::from("build"),
+            OsString::from("-q"),
             OsString::from("--target"),
-            OsString::from(target_name),
+            OsString::from(intermediate_target_name),
             OsString::from("-p"),
             OsString::from("pfconf-ls")
         ]);
@@ -139,15 +158,54 @@ impl flags::BuildServer {
             )
             .env("CC", sdk_env.get_target_dir_path().join("bin/clang"))
             .env("CFLAGS", "-Wno-implicit-function-declaration")
-            // TODO: bindgen debug flag
+            .env("WIT_BINDGEN_DEBUG", format!("{}", !self.release as i8))
             .run()
         {
             error!("{err}");
             return Ok(ExitCode::FAILURE)
         }
-        // TODO: Implement the jco + wit step.
-        // TODO: pnpx @bytecodealliance/jco
-        // TODO: check pnpx is present.
+        info!(
+            "✅ Intermediate '{intermediate_target_name}' build is successful!"
+        );
+        let node_env = NodeEnv::from_local_env();
+        let wasm_path = from_workspace_root(
+            PathBuf::from("target")
+                .join(intermediate_target_name)
+                .join(build_mode)
+                .join("pfconf-ls.wasm")
+        );
+        let output_path = from_workspace_root(
+            PathBuf::from("target")
+                .join(final_target_name)
+                .join(build_mode)
+                .join("pfconf-ls")
+        );
+        if let Some(output_dir) = output_path.parent() {
+            if let Err(err) = create_dir_all(output_dir) {
+                warn!("Couldn't create output directory. {err}");
+            }
+        }
+        info!(
+            "Transpiling from '{intermediate_target_name}' to \
+             '{final_target_name}'."
+        );
+        if let Err(err) = pnpx_execute(&node_env, vec![
+            "@bytecodealliance/jco",
+            "transpile",
+            "-q",
+            "--no-nodejs-compat",
+            "--minify",
+            &wasm_path.display().to_string(),
+            "-o",
+            &output_path.display().to_string(),
+        ]) {
+            error!("{err}");
+            return Ok(ExitCode::FAILURE);
+        }
+        info!(
+            "✅ Final build is successful!\nBuild path: '{path}'.",
+            path = output_path.display()
+        );
         Ok(ExitCode::SUCCESS)
     }
 }
@@ -156,7 +214,7 @@ impl Command for flags::CleanServer {
     /// Cleans-up server crates specifically (and not the xtask crates).
     fn run(&self) -> Result<ExitCode> {
         let server_env = ServerEnv::from_local_env();
-        info!("Proceeding to clean-up server crates...");
+        info!("Proceeding to clean-up server crates.");
         for name in cargo_crates_for_root(&server_env.crates_root_path)? {
             info!("Cleaning-up '{name}'.");
             if let Err(err) = cargo_execute(vec!["clean", "-p", &name]) {

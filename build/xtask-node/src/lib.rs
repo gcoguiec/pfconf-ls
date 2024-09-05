@@ -82,6 +82,7 @@ pub enum NodeError {
 #[derive(Debug)]
 pub struct NodeEnv {
     pnpm_path: PathBuf,
+    pnpx_path: PathBuf,
     volta_path: PathBuf
 }
 
@@ -98,6 +99,12 @@ impl NodeEnv {
                 match cmd!("which", "pnpm").read() {
                     Ok(stdout) => stdout.trim().to_string(),
                     Err(_) => String::from("pnpm")
+                }
+            })),
+            pnpx_path: PathBuf::from(fetch_env_or_else("PNPX_PATH", |_| {
+                match cmd!("which", "pnpx").read() {
+                    Ok(stdout) => stdout.trim().to_string(),
+                    Err(_) => String::from("pnpx")
                 }
             })),
             volta_path: PathBuf::from(fetch_env_or_else("VOLTA_PATH", |_| {
@@ -354,6 +361,17 @@ pub fn pnpm_install_dependencies_for_package(
     }
     // Double-check (literally).
     pnpm_ensure_dependencies_for_package(env, package_path)
+}
+
+/// Executes a command from a local or remote pnpm package.
+pub fn pnpx_execute(env: &NodeEnv, args: Vec<&str>) -> Result<(), NodeError> {
+    let command = format!("{} {}", env.pnpx_path.display(), args.join(" "));
+    trace!(target: "xtask_node::pnpx_execute", command = ?command);
+    if let Err(err) = cmd(&env.pnpx_path, args).run() {
+        debug!(target: "xtask_node::pnpx_execute", err = ?err);
+        return Err(NodeError::PnpmExecutionFailed { err, command })
+    }
+    Ok(())
 }
 
 /// Checks if the system has volta installed.

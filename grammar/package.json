@@ -40,9 +40,9 @@
   },
   "volta": {
     "node": "22.2.0",
-    "pnpm": "9.2.0"
+    "pnpm": "9.9.0"
   },
-  "packageManager": "pnpm@9.2.0",
+  "packageManager": "pnpm@9.9.0",
   "tree-sitter": [
     {
       "scope": "source.pfconf",
