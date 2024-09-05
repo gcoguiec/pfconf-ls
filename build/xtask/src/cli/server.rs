@@ -193,8 +193,8 @@ impl flags::BuildServer {
             "@bytecodealliance/jco",
             "transpile",
             "-q",
+            "-m",
             "--no-nodejs-compat",
-            "--minify",
             &wasm_path.display().to_string(),
             "-o",
             &output_path.display().to_string(),
@@ -202,10 +202,8 @@ impl flags::BuildServer {
             error!("{err}");
             return Ok(ExitCode::FAILURE);
         }
-        info!(
-            "✅ Final build is successful!\nBuild path: '{path}'.",
-            path = output_path.display()
-        );
+        info!("✅ Final build is successful!");
+        info!("Build path: '{path}'.", path = output_path.display());
         Ok(ExitCode::SUCCESS)
     }
 }

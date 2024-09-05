@@ -2,10 +2,10 @@
 // Options used:
 #[doc(hidden)]
 #[allow(non_snake_case)]
-pub unsafe fn _export_helloworld_cabi<T: Guest>() -> *mut u8 {
+pub unsafe fn _export_language_version_cabi<T: Guest>() -> *mut u8 {
     #[cfg(target_arch = "wasm32")]
     _rt::run_ctors_once();
-    let result0 = T::helloworld();
+    let result0 = T::language_version();
     let ptr1 = _RET_AREA.0.as_mut_ptr().cast::<u8>();
     let vec2 = (result0.into_bytes()).into_boxed_slice();
     let ptr2 = vec2.as_ptr().cast::<u8>();
@@ -17,26 +17,26 @@ pub unsafe fn _export_helloworld_cabi<T: Guest>() -> *mut u8 {
 }
 #[doc(hidden)]
 #[allow(non_snake_case)]
-pub unsafe fn __post_return_helloworld<T: Guest>(arg0: *mut u8) {
+pub unsafe fn __post_return_language_version<T: Guest>(arg0: *mut u8) {
     let l0 = *arg0.add(0).cast::<*mut u8>();
     let l1 = *arg0.add(4).cast::<usize>();
     _rt::cabi_dealloc(l0, l1, 1);
 }
 pub trait Guest {
-    fn helloworld() -> _rt::String;
+    fn language_version() -> _rt::String;
 }
 #[doc(hidden)]
 
 macro_rules! __export_world_pfconf_ls_cabi{
   ($ty:ident with_types_in $($path_to_types:tt)*) => (const _: () = {
 
-    #[export_name = "helloworld"]
-    unsafe extern "C" fn export_helloworld() -> *mut u8 {
-      $($path_to_types)*::_export_helloworld_cabi::<$ty>()
+    #[export_name = "language-version"]
+    unsafe extern "C" fn export_language_version() -> *mut u8 {
+      $($path_to_types)*::_export_language_version_cabi::<$ty>()
     }
-    #[export_name = "cabi_post_helloworld"]
-    unsafe extern "C" fn _post_return_helloworld(arg0: *mut u8,) {
-      $($path_to_types)*::__post_return_helloworld::<$ty>(arg0)
+    #[export_name = "cabi_post_language-version"]
+    unsafe extern "C" fn _post_return_language_version(arg0: *mut u8,) {
+      $($path_to_types)*::__post_return_language_version::<$ty>(arg0)
     }
   };);
 }
@@ -94,11 +94,11 @@ pub(crate) use __export_pfconf_ls_impl as export;
 #[cfg(target_arch = "wasm32")]
 #[link_section = "component-type:wit-bindgen:0.25.0:pfconf-ls:encoded world"]
 #[doc(hidden)]
-pub static __WIT_BINDGEN_COMPONENT_TYPE: [u8; 186] = *b"\
-\0asm\x0d\0\x01\0\0\x19\x16wit-component-encoding\x04\0\x07;\x01A\x02\x01A\x02\x01\
-@\0\0s\x04\0\x0ahelloworld\x01\0\x04\x01\x1cgcoguiec:pfconf-ls/pfconf-ls\x04\0\x0b\
-\x0f\x01\0\x09pfconf-ls\x03\0\0\0G\x09producers\x01\x0cprocessed-by\x02\x0dwit-c\
-omponent\x070.208.1\x10wit-bindgen-rust\x060.25.0";
+pub static __WIT_BINDGEN_COMPONENT_TYPE: [u8; 192] = *b"\
+\0asm\x0d\0\x01\0\0\x19\x16wit-component-encoding\x04\0\x07A\x01A\x02\x01A\x02\x01\
+@\0\0s\x04\0\x10language-version\x01\0\x04\x01\x1cgcoguiec:pfconf-ls/pfconf-ls\x04\
+\0\x0b\x0f\x01\0\x09pfconf-ls\x03\0\0\0G\x09producers\x01\x0cprocessed-by\x02\x0d\
+wit-component\x070.208.1\x10wit-bindgen-rust\x060.25.0";
 
 #[inline(never)]
 #[doc(hidden)]

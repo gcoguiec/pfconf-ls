@@ -8,8 +8,8 @@ use bindings::Guest;
 struct Component;
 
 impl Guest for Component {
-    fn helloworld() -> String {
-        String::from("Hello, World")
+    fn language_version() -> String {
+        pfconf_tree_sitter::language().version().to_string()
     }
 }
 
