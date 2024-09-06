@@ -2,6 +2,7 @@
   "name": "@pfconf-ls/tree-sitter-freebsd",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "FreeBSD Packet Filter (PF) grammar for tree-sitter",
   "author": "Guillaume 'Yugo' Coguiec <mail@gcoguiec.com> (https://github.com/gcoguiec/)",
   "license": "BSD-2-Clause",
@@ -21,10 +22,11 @@
     "tree-sitter": "^0.21.1"
   },
   "devDependencies": {
-    "@gcoguiec/eslint-config-typescript": "^1.0.8",
+    "@gcoguiec/eslint-config": "^1.1.4",
     "eslint": "^9.9.1",
     "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-import": "^2.30.0",
+    "eslint-plugin-import-x": "^4.2.1",
+    "eslint-plugin-perfectionist": "^3.4.0",
     "eslint-plugin-promise": "^7.1.0",
     "prettier": "^3.3.3",
     "tree-sitter-cli": "^0.23.0"
@@ -36,7 +38,9 @@
     "gen": "tree-sitter generate --no-bindings --abi=latest",
     "parse": "tree-sitter parse",
     "test": "tree-sitter test",
-    "lint": "DEBUG=eslint:cli-engine eslint grammar.js --ignore-path .gitignore"
+    "lint": "eslint .",
+    "lint:fix": "pnpm lint --fix",
+    "lint:conflicts": "ESLINT_USE_FLAT_CONFIG=true npx eslint-config-prettier"
   },
   "volta": {
     "node": "22.8.0",
