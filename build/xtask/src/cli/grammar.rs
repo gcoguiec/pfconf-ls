@@ -3,22 +3,23 @@ use std::{fs, path::PathBuf, process::ExitCode};
 use miette::Result;
 use tracing::{error, info, warn};
 
-use crate::{
-    cli::{flags, Command},
-    from_workspace_root,
-    tools::node::{
-        is_volta_installed,
-        pnpm_execute_for_package,
-        pnpm_install_dependencies_for_package,
-        PackageJson
-    }
+use xtask_node::{
+    is_volta_installed,
+    pnpm_execute_for_package,
+    pnpm_install_dependencies_for_package,
+    NodeEnv,
+    PackageJson
 };
+
+use xtask_utils::from_workspace_root;
+
+use crate::cli::{flags, Command};
 
 static GRAMMAR_PACKAGE_PATH: &str = "grammar";
 
 impl Command for flags::GenerateGrammar {
     /// Generates parser and scanner from the grammar definition.
-    fn run(self) -> Result<ExitCode> {
+    fn run(&self) -> Result<ExitCode> {
         let package_path =
             from_workspace_root(PathBuf::from(GRAMMAR_PACKAGE_PATH));
         let manifest =
@@ -29,9 +30,9 @@ impl Command for flags::GenerateGrammar {
                     return Ok(ExitCode::FAILURE)
                 }
             };
-
+        let node_env = NodeEnv::from_local_env();
         // We check if `volta` is available, if not we warn the developer about it.
-        if manifest.volta.is_some() && !is_volta_installed() {
+        if manifest.volta.is_some() && !is_volta_installed(&node_env) {
             let volta_config = manifest.volta.expect(
                 "A `volta` configuration object was expected in the package \
                  manifest"
@@ -47,20 +48,19 @@ impl Command for flags::GenerateGrammar {
                  `node@{expected_node_version}` manually."
             );
         }
-
         // We verify that grammar project `node_modules` is correctly populated
         // and that all dependencies are up-to-date. If not, we try running
         // `pnpm install` once to correct the issue.
-        if let Err(err) = pnpm_install_dependencies_for_package(&package_path) {
+        if let Err(err) =
+            pnpm_install_dependencies_for_package(&node_env, &package_path)
+        {
             error!("{err}");
             return Ok(ExitCode::FAILURE)
         }
-
         info!(
             "Proceeding to generate parser/scanner from grammar definition..."
         );
-
-        match pnpm_execute_for_package(&package_path, vec!["gen"]) {
+        match pnpm_execute_for_package(&node_env, &package_path, vec!["gen"]) {
             Ok(_) => {
                 // We make sure parser was successfully generated before moving on.
                 let artifact_path = package_path.join("src/parser.c");
@@ -74,7 +74,6 @@ impl Command for flags::GenerateGrammar {
                     );
                     return Ok(ExitCode::FAILURE)
                 }
-
                 info!("✅ Parser & scanner successfully generated.");
                 Ok(ExitCode::SUCCESS)
             }
@@ -88,29 +87,20 @@ impl Command for flags::GenerateGrammar {
 
 impl Command for flags::CleanGrammar {
     /// Cleans-up grammar project by removing the `node_modules` folder.
-    fn run(self) -> Result<ExitCode> {
-        info!("Proceeding to clean-up grammar project...");
+    fn run(&self) -> Result<ExitCode> {
+        info!("Cleaning-up the grammar artifacts.");
         let modules_path =
             from_workspace_root(PathBuf::from(GRAMMAR_PACKAGE_PATH))
                 .join("node_modules");
-
         if !modules_path.exists() {
             info!("💪 Nothing to clean-up.");
             return Ok(ExitCode::SUCCESS)
         }
-
-        match fs::remove_dir_all(modules_path) {
-            Ok(()) => {
-                info!("✅ Clean-up done!");
-                Ok(ExitCode::SUCCESS)
-            }
-            Err(err) => {
-                error!(
-                    "Cleaning-up grammar node modules directory did not \
-                     succeed. {err}"
-                );
-                Ok(ExitCode::FAILURE)
-            }
+        if let Err(err) = fs::remove_dir_all(modules_path) {
+            warn!("Cleaning-up grammar artifacts did not succeed. {err}");
+            return Ok(ExitCode::FAILURE)
         }
+        info!("✅ Cleaned-up.");
+        Ok(ExitCode::SUCCESS)
     }
 }

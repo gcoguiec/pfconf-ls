@@ -8,3 +8,5 @@ pub mod lsp;
 pub mod thread;
 pub mod util;
 pub mod version;
+#[cfg(target_os = "wasi")]
+pub mod wasi;

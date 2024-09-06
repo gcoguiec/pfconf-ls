@@ -43,8 +43,8 @@ pub fn run_lsp_server() -> Result<()> {
     let initialize_data = serde_json::json!({
         "capabilities": server_capabilities,
         "serverInfo": {
-            "name": "pfconf-ls", // @TODO
-            "version": "unknown" // @TODO
+            "name": "pfconf-ls", // TODO:
+            "version": "unknown" // TODO:
         }
     });
 
@@ -61,7 +61,7 @@ pub fn run_lsp_server() -> Result<()> {
 
 pub fn loop_on_lsp_messages(
     connection: Connection,
-    params: serde_json::Value
+    _params: serde_json::Value
 ) -> Result<()> {
     for message in &connection.receiver {
         match message {

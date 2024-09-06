@@ -1,0 +1,17 @@
+cargo-features = ["edition2024"]
+
+[package]
+name = "xtask-rustup"
+version = "1.0.0"
+edition = "2024"
+publish = false
+authors = ["Guillaume 'Yugo' Coguiec <mail@gcoguiec.com>"]
+license = "BSD-2-Clause"
+readme = "README.md"
+
+[dependencies]
+miette = { workspace = true }
+thiserror = { workspace = true }
+duct = { workspace = true }
+tracing = { workspace = true }
+xtask-utils = { path = "../xtask-utils" }

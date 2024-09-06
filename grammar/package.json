@@ -1,5 +1,5 @@
 {
-  "name": "tree-sitter-pfconf",
+  "name": "@pfconf-ls/tree-sitter-freebsd",
   "version": "1.0.0",
   "private": true,
   "description": "FreeBSD Packet Filter (PF) grammar for tree-sitter",
@@ -40,9 +40,9 @@
   },
   "volta": {
     "node": "22.2.0",
-    "pnpm": "9.2.0"
+    "pnpm": "9.9.0"
   },
-  "packageManager": "pnpm@9.2.0",
+  "packageManager": "pnpm@9.9.0",
   "tree-sitter": [
     {
       "scope": "source.pfconf",

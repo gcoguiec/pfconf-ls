@@ -17,72 +17,116 @@ use std::io::Error as IoError;
 use thiserror::Error;
 use tracing::{debug, error, info, trace};
 
-use crate::{cache::TOOLS_FLAG_CACHE, fetch_env_or};
-
-static PNPM_DEFAULT_BINARY: &str = "pnpm";
-static PNPM_FLAG_KEY: &str = "has_pnpm";
-
-static VOLTA_DEFAULT_BINARY: &str = "volta";
-static VOLTA_FLAG_KEY: &str = "has_volta";
-
-static VERSION_PATTERN: &str = r"^\d+.\d+.\d+$";
+use xtask_utils::{fetch_env_or_else, VERSION_PATTERN};
 
 #[derive(Debug, Error, Diagnostic)]
 pub enum NodeManifestError {
     #[error(transparent)]
-    #[diagnostic(code(xtask::node::manifest::invalid_path_error))]
+    #[diagnostic(code(xtask_node::manifest::invalid_path_error))]
     InvalidPath(#[from] IoError),
 
     #[error("Failed to convert manifest content to UTF-8, {0}.")]
-    #[diagnostic(code(xtask::node::manifest::content_error))]
+    #[diagnostic(code(xtask_node::manifest::content_error))]
     Content(Utf8Error),
 
     #[error("Failed to parse manifest as JSON, {0}.")]
-    #[diagnostic(code(xtask::node::manifest::parsing_failed_error))]
+    #[diagnostic(code(xtask_node::manifest::parsing_failed_error))]
     ParsingFailed(SerdeJsonError)
 }
 
 #[derive(Debug, Error, Diagnostic)]
 pub enum NodeError {
     #[error("The `pnpm` package manager is not present on this system.")]
-    #[diagnostic(code(xtask::node::pnpm_not_present_error))]
+    #[diagnostic(code(xtask_node::pnpm_not_present_error))]
     PnpmNotPresent,
 
-    #[error("Failed to execute `pnpm` command '{command}'. {error}")]
-    #[diagnostic(code(xtask::node::pnpm_execution_failed_error))]
-    PnpmExecutionFailed { error: IoError, command: String },
+    #[error("Failed to execute `pnpm` command '{command}'. {err}")]
+    #[diagnostic(code(xtask_node::pnpm_execution_failed_error))]
+    PnpmExecutionFailed { err: IoError, command: String },
 
     #[error("Missing dependency package '{package_name}'.")]
-    #[diagnostic(code(xtask::node::missing_dependency_error))]
+    #[diagnostic(code(xtask_node::missing_dependency_error))]
     MissingDependency { package_name: String },
 
     #[error(
         "Could not parse '{version}' version for package '{package_name}'. \
-         {error}"
+         {err}"
     )]
-    #[diagnostic(code(xtask::node::unparsable_version_error))]
+    #[diagnostic(code(xtask_node::unparsable_version_error))]
     UnparsableVersion {
         package_name: String,
         version: String,
-        error: SemverVersion
+        err: SemverVersion
     },
 
     #[error(
         "Version mismatch for dependency package '{package_name}', version \
          '{expected_version}' expected, '{installed_version}' installed."
     )]
-    #[diagnostic(code(xtask::node::mismatched_dependency_version_error))]
+    #[diagnostic(code(xtask_node::mismatched_dependency_version_error))]
     MismatchedDependencyVersion {
         package_name: String,
         expected_version: String,
         installed_version: String
     },
 
-    #[error("An error occured when handling '{filepath}' manifest. {error}")]
-    #[diagnostic(code(xtask::node::manifest_error))]
+    #[error("An error occurred when handling '{filepath}' manifest. {err}")]
+    #[diagnostic(code(xtask_node::manifest_error))]
     Manifest {
-        error: Box<NodeManifestError>,
+        err: Box<NodeManifestError>,
         filepath: PathBuf
+    }
+}
+
+/// Holds variables for local Node environment.
+#[derive(Debug)]
+pub struct NodeEnv {
+    pnpm_path: PathBuf,
+    pnpx_path: PathBuf,
+    volta_path: PathBuf
+}
+
+impl NodeEnv {
+    /// Creates a new Node environment initialized from local environment
+    ///
+    /// # Environment Variables
+    ///
+    /// - `XTASK_PNPM_PATH`: Configure an alternative path to pnpm.
+    /// - `XTASK_VOLTA_PATH`: Setup a different path to the volta utility.
+    pub fn from_local_env() -> Self {
+        Self {
+            pnpm_path: PathBuf::from(fetch_env_or_else("PNPM_PATH", |_| {
+                match cmd!("which", "pnpm").read() {
+                    Ok(stdout) => stdout.trim().to_string(),
+                    Err(_) => String::from("pnpm")
+                }
+            })),
+            pnpx_path: PathBuf::from(fetch_env_or_else("PNPX_PATH", |_| {
+                match cmd!("which", "pnpx").read() {
+                    Ok(stdout) => stdout.trim().to_string(),
+                    Err(_) => String::from("pnpx")
+                }
+            })),
+            volta_path: PathBuf::from(fetch_env_or_else("VOLTA_PATH", |_| {
+                match cmd!("which", "volta").read() {
+                    Ok(stdout) => stdout.trim().to_string(),
+                    Err(_) => String::from("volta")
+                }
+            }))
+        }
+    }
+
+    /// Checks if the system has pnpm installed.
+    pub fn is_pnpm_installed(&self) -> bool {
+        match cmd!(&self.pnpm_path, "--version").read() {
+            Ok(stdout) => Regex::new(VERSION_PATTERN)
+                .expect("Invalid version regex pattern.")
+                .is_match(&stdout),
+            Err(err) => {
+                debug!(target: "xtask_node::pnpm::is_installed", err = ?err);
+                false
+            }
+        }
     }
 }
 
@@ -96,12 +140,13 @@ pub struct PackageJson {
 }
 
 impl PackageJson {
+    /// Builds a PackageJson instance from specified path.
     pub fn from_path(manifest_path: &Path) -> Result<Self, NodeError> {
         let reader = BufReader::new(match File::open(manifest_path) {
             Ok(file) => file,
             Err(err) => {
                 return Err(NodeError::Manifest {
-                    error: Box::new(NodeManifestError::InvalidPath(err)),
+                    err: Box::new(NodeManifestError::InvalidPath(err)),
                     filepath: manifest_path.to_path_buf()
                 })
             }
@@ -109,12 +154,13 @@ impl PackageJson {
         match serde_json::from_reader(reader) {
             Ok(json) => Ok(json),
             Err(err) => Err(NodeError::Manifest {
-                error: Box::new(NodeManifestError::ParsingFailed(err)),
+                err: Box::new(NodeManifestError::ParsingFailed(err)),
                 filepath: manifest_path.to_path_buf()
             })
         }
     }
 
+    /// Iterates over all package dependencies.
     pub fn iter(
         &self
     ) -> impl Iterator<Item = &Option<HashMap<String, Value>>> {
@@ -127,59 +173,30 @@ impl PackageJson {
     }
 }
 
-/// Checks if the system has pnpm installed.
-pub fn is_pnpm_installed() -> bool {
-    let mut cache = TOOLS_FLAG_CACHE
-        .lock()
-        .expect("Could not lock the tools flag cache.");
-    if let Some(option) = cache.get(PNPM_FLAG_KEY) {
-        return *option;
-    }
-    match cmd!(fetch_env_or("PNPM", PNPM_DEFAULT_BINARY), "--version").read() {
-        Ok(stdout) => {
-            trace!("Found `pnpm` version {stdout}.");
-            let flag = Regex::new(VERSION_PATTERN)
-                .expect("Invalid version regex pattern.")
-                .is_match(&stdout);
-            cache.put(PNPM_FLAG_KEY, flag);
-            flag
-        }
-        Err(err) => {
-            debug!("Underlying error: {err}");
-            cache.put(PNPM_FLAG_KEY, false);
-            false
-        }
-    }
-}
-
 /// Executes node / pnpm with provided arguments.
-pub fn pnpm_execute(args: Vec<&str>) -> Result<Output, NodeError> {
-    if !is_pnpm_installed() {
-        return Err(NodeError::PnpmNotPresent);
-    }
-    let command = args.join(" ");
-    trace!("Command: '{command}'");
-    match cmd(fetch_env_or("PNPM", PNPM_DEFAULT_BINARY), args)
-        .stdout_capture()
-        .run()
-    {
+pub fn pnpm_execute(
+    env: &NodeEnv,
+    args: Vec<&str>
+) -> Result<Output, NodeError> {
+    let command = format!("{} {}", env.pnpm_path.display(), args.join(" "));
+    trace!(target: "xtask_node::pnpm_execute", command = ?command);
+    match cmd(&env.pnpm_path, args).stdout_capture().run() {
         Ok(output) => Ok(output),
         Err(err) => {
-            debug!("Underlying I/O error: {err}");
-            Err(NodeError::PnpmExecutionFailed {
-                error: err,
-                command
-            })
+            debug!(target: "xtask_node::pnpm_execute", err = ?err);
+            Err(NodeError::PnpmExecutionFailed { err, command })
         }
     }
 }
 
-/// Executes a `pnpm` task in a package context.
+/// Executes a pnpm task in a package context.
 pub fn pnpm_execute_for_package(
+    env: &NodeEnv,
     package_path: &Path,
     args: Vec<&str>
 ) -> Result<Output, NodeError> {
     pnpm_execute(
+        env,
         vec![
             "-C",
             package_path
@@ -194,17 +211,19 @@ pub fn pnpm_execute_for_package(
 
 /// Returns installed dependencies for a specific package.
 pub fn pnpm_installed_dependencies_for_package(
+    env: &NodeEnv,
     package_path: &Path
 ) -> Result<Vec<PackageJson>, NodeError> {
-    let output = pnpm_execute_for_package(package_path, vec![
+    let output = pnpm_execute_for_package(env, package_path, vec![
         "list", "--depth", "0", "--json",
     ])?;
-    trace!("Installed Dependencies Output: {:?}", output);
+    trace!(target: "xtask_node::pnpm_installed_dependencies_for_package",
+        output = ?output);
     let json = match str::from_utf8(&output.stdout) {
         Ok(value) => value,
         Err(err) => {
             return Err(NodeError::Manifest {
-                error: Box::new(NodeManifestError::Content(err)),
+                err: Box::new(NodeManifestError::Content(err)),
                 filepath: package_path.to_path_buf()
             })
         }
@@ -212,19 +231,21 @@ pub fn pnpm_installed_dependencies_for_package(
     match serde_json::from_str(json.trim()) {
         Ok(list) => Ok(list),
         Err(err) => Err(NodeError::Manifest {
-            error: Box::new(NodeManifestError::ParsingFailed(err)),
+            err: Box::new(NodeManifestError::ParsingFailed(err)),
             filepath: package_path.to_path_buf()
         })
     }
 }
 
-/// Check if package dependencies are installed properly.
+/// Checks if package dependencies are installed properly.
 pub fn pnpm_ensure_dependencies_for_package(
+    env: &NodeEnv,
     package_path: &Path
 ) -> Result<(), NodeError> {
     let package_json =
         PackageJson::from_path(&package_path.join("package.json"))?;
-    let installed = &pnpm_installed_dependencies_for_package(package_path)?[0];
+    let installed =
+        &pnpm_installed_dependencies_for_package(env, package_path)?[0];
 
     let mut installed_dependencies: HashMap<String, Value> = HashMap::new();
     for collection in installed.iter().flatten() {
@@ -251,7 +272,7 @@ pub fn pnpm_ensure_dependencies_for_package(
     Ok(())
 }
 
-/// Check if the designated dependency is installed and verify if its version satisfies manifest requirements.
+/// Checks if the designated dependency is installed and verify if its version satisfies manifest requirements.
 pub fn pnpm_ensure_satisfied_dependency_for_package(
     package_name: String,
     expected_version: String,
@@ -276,7 +297,7 @@ pub fn pnpm_ensure_satisfied_dependency_for_package(
             return Err(NodeError::UnparsableVersion {
                 package_name,
                 version: expected_version,
-                error: err
+                err
             })
         }
     };
@@ -286,7 +307,7 @@ pub fn pnpm_ensure_satisfied_dependency_for_package(
             return Err(NodeError::UnparsableVersion {
                 package_name,
                 version: installed_version,
-                error: err
+                err
             })
         }
     };
@@ -300,12 +321,14 @@ pub fn pnpm_ensure_satisfied_dependency_for_package(
     Ok(())
 }
 
-/// Install specific package dependencies (if necessary).
+/// Installs specific package dependencies (if necessary).
 pub fn pnpm_install_dependencies_for_package(
+    env: &NodeEnv,
     package_path: &PathBuf
 ) -> Result<(), NodeError> {
     info!("Checking dependency availability...");
     let run_install = |package_path: &PathBuf| match pnpm_execute_for_package(
+        env,
         package_path,
         vec!["install", "--frozen-lockfile"]
     ) {
@@ -314,12 +337,12 @@ pub fn pnpm_install_dependencies_for_package(
         }
         Err(err) => {
             error!(
-                "An error occured when trying to install dependencies: {err}"
+                "An error occurred when trying to install dependencies: {err}"
             );
         }
     };
 
-    match pnpm_ensure_dependencies_for_package(package_path) {
+    match pnpm_ensure_dependencies_for_package(env, package_path) {
         Ok(_) => {
             info!("✅ Dependencies are up-to-date.");
         }
@@ -337,30 +360,32 @@ pub fn pnpm_install_dependencies_for_package(
         Err(err) => return Err(err)
     }
     // Double-check (literally).
-    pnpm_ensure_dependencies_for_package(package_path)
+    pnpm_ensure_dependencies_for_package(env, package_path)
+}
+
+/// Executes a command from a local or remote pnpm package.
+pub fn pnpx_execute(env: &NodeEnv, args: Vec<&str>) -> Result<(), NodeError> {
+    let command = format!("{} {}", env.pnpx_path.display(), args.join(" "));
+    trace!(target: "xtask_node::pnpx_execute", command = ?command);
+    if let Err(err) = cmd(&env.pnpx_path, args).run() {
+        debug!(target: "xtask_node::pnpx_execute", err = ?err);
+        return Err(NodeError::PnpmExecutionFailed { err, command })
+    }
+    Ok(())
 }
 
 /// Checks if the system has volta installed.
-pub fn is_volta_installed() -> bool {
-    let mut cache = TOOLS_FLAG_CACHE
-        .lock()
-        .expect("Could not lock the tools flag cache.");
-    if let Some(option) = cache.get(VOLTA_FLAG_KEY) {
-        return *option;
-    }
-    match cmd!(fetch_env_or("VOLTA", VOLTA_DEFAULT_BINARY), "--version").read()
-    {
+pub fn is_volta_installed(env: &NodeEnv) -> bool {
+    match cmd!(&env.volta_path, "--version").read() {
         Ok(stdout) => {
-            trace!("Found `volta` version {stdout}.");
-            let flag = Regex::new(VERSION_PATTERN)
+            trace!(target: "xtask_node::is_volta_installed", version =
+                ?stdout.trim());
+            Regex::new(VERSION_PATTERN)
                 .expect("Invalid version regex pattern.")
-                .is_match(&stdout);
-            cache.put(VOLTA_FLAG_KEY, flag);
-            flag
+                .is_match(stdout.trim())
         }
         Err(err) => {
-            debug!("Underlying error: {err}");
-            cache.put(VOLTA_FLAG_KEY, false);
+            debug!(target: "xtask_node::is_volta_installed", err = ?err);
             false
         }
     }

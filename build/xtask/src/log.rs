@@ -98,7 +98,7 @@ where
         if *meta.level() != Level::ERROR {
             return writeln!(writer)
         }
-        write!(writer, " ")?;
+        writeln!(writer)?;
         writeln!(
             writer,
             "You can re-run this task using `XTASK_LOG=debug` for more \

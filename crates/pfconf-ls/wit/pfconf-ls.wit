@@ -1,0 +1,5 @@
+package gcoguiec:pfconf-ls;
+
+world pfconf-ls {
+    export language-version: func() -> string;
+}
