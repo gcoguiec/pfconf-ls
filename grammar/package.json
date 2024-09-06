@@ -22,12 +22,12 @@
   },
   "devDependencies": {
     "@gcoguiec/eslint-config-typescript": "^1.0.8",
-    "eslint": "^9.5.0",
+    "eslint": "^9.9.1",
     "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-promise": "^6.2.0",
-    "prettier": "^3.3.2",
-    "tree-sitter-cli": "^0.22.6"
+    "eslint-plugin-import": "^2.30.0",
+    "eslint-plugin-promise": "^7.1.0",
+    "prettier": "^3.3.3",
+    "tree-sitter-cli": "^0.23.0"
   },
   "scripts": {
     "fmt": "prettier --write '**/*.{js,cjs,mjs,ts,cts,mts,json,md}'",
@@ -39,7 +39,7 @@
     "lint": "DEBUG=eslint:cli-engine eslint grammar.js --ignore-path .gitignore"
   },
   "volta": {
-    "node": "22.2.0",
+    "node": "22.8.0",
     "pnpm": "9.9.0"
   },
   "packageManager": "pnpm@9.9.0",
