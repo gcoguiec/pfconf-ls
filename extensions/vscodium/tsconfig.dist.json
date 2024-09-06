@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "out",
+    "noEmit": false,
+    "declaration": true,
+    "declarationDir": "out"
+  },
+  "exclude": ["*.spec.ts", "vscode.shim.ts", "vitest.config.ts"]
+}

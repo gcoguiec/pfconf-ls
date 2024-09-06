@@ -46,18 +46,18 @@ fn main() -> Result<ExitCode> {
     };
 
     match flags.subcommand {
-        flags::XtaskCmd::Mrproper(command) => Ok(command.run()?),
+        flags::XtaskCmd::Mrproper(command) => command.run(),
 
         // Server
-        flags::XtaskCmd::BuildServer(command) => Ok(command.run()?),
-        flags::XtaskCmd::CleanServer(command) => Ok(command.run()?),
+        flags::XtaskCmd::BuildServer(command) => command.run(),
+        flags::XtaskCmd::CleanServer(command) => command.run(),
 
         // Grammar
-        flags::XtaskCmd::GenerateGrammar(command) => Ok(command.run()?),
-        flags::XtaskCmd::CleanGrammar(command) => Ok(command.run()?),
+        flags::XtaskCmd::GenerateGrammar(command) => command.run(),
+        flags::XtaskCmd::CleanGrammar(command) => command.run(),
 
         // Vscodium
-        flags::XtaskCmd::BuildVscodium(command) => Ok(command.run()?),
+        flags::XtaskCmd::BuildVscodium(command) => command.run(),
 
         // Wasi
         flags::XtaskCmd::Wasi(command) => match command.subcommand {

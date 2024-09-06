@@ -1,7 +1,0 @@
-{
-  "root": true,
-  "extends": ["@gcoguiec/eslint-config-typescript", "prettier"],
-  "rules": {
-    "no-undef": 0
-  }
-}
