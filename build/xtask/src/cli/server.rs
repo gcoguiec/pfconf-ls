@@ -10,7 +10,7 @@ use miette::Result;
 use tracing::{info, warn};
 use tracing_log::log::error;
 
-use xtask_cargo::{cargo_crates_for_root, cargo_execute};
+use xtask_cargo::{cargo_crates_for_root, cargo_execute, CargoEnv};
 use xtask_node::{pnpx_execute, NodeEnv};
 use xtask_rustup::{add_toolchain_target, RustupEnv};
 use xtask_utils::{cli::Question, fetch_env_or, from_workspace_root};
@@ -70,6 +70,7 @@ impl flags::BuildServer {
             false => "debug"
         };
         info!("Building in '{build_mode}' mode.");
+        let cargo_env = CargoEnv::from_local_env();
         let rustup_env = match RustupEnv::from_local_env() {
             Ok(env) => env,
             Err(err) => {
@@ -129,6 +130,21 @@ impl flags::BuildServer {
             "All good! wasi-sdk path is '{}'.",
             sdk_env.get_target_dir_path().display()
         );
+        info!("Checking cargo-component presence.");
+        if !cargo_env.is_cargo_component_installed() {
+            // We're using a modified version of cargo-component at the moment.
+            error!(
+                "
+                The cargo-component command must be installed \
+                 for this build to proceed.
+                help: `cargo install \
+                 --git https://github.com/gcoguiec/cargo-component.git \
+                 --branch configurable-bindings-path`
+            "
+            );
+            return Ok(ExitCode::FAILURE)
+        }
+        info!("Good to go! Let's proceed with the build.");
         let mut args = Vec::from([
             OsString::from("component"),
             OsString::from("build"),

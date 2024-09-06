@@ -12,6 +12,7 @@ use serde::Deserialize;
 use std::io::Error as IoError;
 use thiserror::Error;
 use toml::de::Error as TomlDeserializingError;
+use tracing::debug;
 
 use xtask_utils::fetch_env_or_else;
 
@@ -83,6 +84,44 @@ impl CargoManifest {
                 err,
                 filepath: manifest_path.to_path_buf()
             })
+        }
+    }
+}
+
+/// Holds variables for local cargo environment.
+#[derive(Debug)]
+pub struct CargoEnv {
+    pub cargo_component_path: PathBuf
+}
+
+impl CargoEnv {
+    /// Creates a new cargo environment from local environment variables
+    /// (or defaults).
+    pub fn from_local_env() -> Self {
+        Self {
+            cargo_component_path: PathBuf::from(fetch_env_or_else(
+                "CARGO_COMPONENT_PATH",
+                |_| match cmd!("which", "cargo-component").read() {
+                    Ok(stdout) => stdout.trim().to_string(),
+                    Err(_) => String::from("cargo-component")
+                }
+            ))
+        }
+    }
+
+    /// Checks if cargo component is properly installed.
+    pub fn is_cargo_component_installed(&self) -> bool {
+        match cmd!(&self.cargo_component_path, "-V")
+            .stdout_capture()
+            .stderr_capture()
+            .read()
+        {
+            Ok(_) => true,
+            Err(err) => {
+                debug!(target: "xtask_cargo::env::is_cargo_component_installed",
+                    cargo_component_path = ?self.cargo_component_path, "{err}");
+                false
+            }
         }
     }
 }
