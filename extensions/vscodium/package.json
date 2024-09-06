@@ -110,7 +110,7 @@
   },
   "browser": "./dist/client.js",
   "scripts": {
-    "build": "tsc -b && node scripts/build.mjs",
+    "build": "tsc -b tsconfig.dist.json && node scripts/build.mjs",
     "fmt": "prettier --write '**/*.{js,cjs,mjs,ts,cts,mts,json,md}'",
     "fmt:check": "prettier --check '**/*.{js,cjs,mjs,ts,cts,mts,json,md}'",
     "spellcheck": "cspell --config=.cspell.json '**/*.{md,js,cjs,mjs,ts,cts,mts}'",
@@ -121,38 +121,39 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@bytecodealliance/preview2-shim": "^0.16.4",
-    "@gcoguiec/eslint-config": "^1.1.2",
+    "@bytecodealliance/preview2-shim": "^0.16.7",
+    "@gcoguiec/eslint-config": "^1.1.4",
+    "@gcoguiec/tsconfig": "^1.0.0",
     "@pfconf-ls/shared": "workspace:*",
-    "@types/vscode": "^1.91.0",
-    "@typescript-eslint/eslint-plugin": "^7.16.0",
-    "@typescript-eslint/parser": "^7.16.0",
-    "@vitest/coverage-v8": "^2.0.2",
+    "@types/vscode": "^1.93.0",
+    "@typescript-eslint/eslint-plugin": "^8.4.0",
+    "@typescript-eslint/parser": "^8.4.0",
+    "@vitest/coverage-v8": "^2.0.5",
     "@vscode/test-electron": "^2.4.1",
-    "@vscode/vsce": "^2.30.0",
-    "cspell": "^8.10.4",
-    "esbuild": "^0.23.0",
+    "@vscode/vsce": "^3.1.0",
+    "cspell": "^8.14.2",
+    "esbuild": "^0.23.1",
     "esbuild-visualizer": "^0.6.0",
-    "eslint": "^9.6.0",
+    "eslint": "^9.9.1",
     "eslint-config-prettier": "^9.1.0",
-    "eslint-plugin-import-x": "^3.0.0",
-    "eslint-plugin-perfectionist": "^2.11.0",
+    "eslint-plugin-import-x": "^4.2.1",
+    "eslint-plugin-perfectionist": "^3.4.0",
     "eslint-plugin-vitest": "^0.5.4",
-    "prettier": "^3.3.2",
-    "tslib": "^2.6.3",
-    "typescript": "^5.5.3",
-    "vitest": "^2.0.2",
-    "vitest-double": "^1.0.2",
+    "prettier": "^3.3.3",
+    "tslib": "^2.7.0",
+    "typescript": "^5.5.4",
+    "vitest": "^2.0.5",
+    "vitest-double": "^1.0.3",
     "vscode-languageserver-protocol": "^3.17.5"
   },
   "engines": {
-    "vscode": "^1.88.1"
+    "vscode": "^1.93.0"
   },
   "devEngines": {
     "node": ">=18"
   },
   "volta": {
-    "node": "18.18.2",
+    "node": "22.8.0",
     "pnpm": "9.9.0"
   },
   "packageManager": "pnpm@9.9.0"

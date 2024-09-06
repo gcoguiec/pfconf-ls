@@ -1,4 +1,9 @@
 out
 scripts
 src
+packages
 tsconfig.*
+pnpm-*.yaml
+.cspell.json
+.gitignore
+*.config.*s

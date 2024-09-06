@@ -10,7 +10,7 @@ context({
   external: ['vscode'],
   format: 'cjs',
   platform: 'node',
-  tsconfig: './tsconfig.json'
+  tsconfig: './tsconfig.dist.json'
 }).then(async ctx => {
   console.log('building client...');
   await ctx.rebuild();
